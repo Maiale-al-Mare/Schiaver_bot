@@ -3,10 +3,12 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +21,7 @@ public class Schiavobot extends TelegramLongPollingBot {
         SendMessage m = new SendMessage();
         SendAnimation a = new SendAnimation();
         SendDocument d = new SendDocument();
+        SendSticker s = new SendSticker();
         EditMessageText nmsg = new EditMessageText();
 
         System.out.println("Ho ricevuto un messaggio!");
@@ -29,34 +32,20 @@ public class Schiavobot extends TelegramLongPollingBot {
         System.out.println("From :" + update.getMessage().getFrom());
         if (update.getMessage().hasSticker()) {
             System.out.println("Sticker file_id :" + update.getMessage().getSticker().getFileId());
-            m.setChatId(update.getMessage().getChatId());
-            m.setText("file_id :" + update.getMessage().getSticker().getFileId());
-            safeSendUpdate(m, "");
-        }
-
-        else if (update.getMessage().hasDocument()) {
+            safeSendUpdate(update, m, "", update.getMessage().getSticker().getFileId());
+        } else if (update.getMessage().hasDocument()) {
             System.out.println("Document file_id :" + update.getMessage().getDocument().getFileId());
-            m.setChatId(update.getMessage().getChatId());
-            m.setText("file_id :" + update.getMessage().getDocument().getFileId());
-            safeSendUpdate(m, "");
-        }
-
-        else if (update.getMessage().hasPhoto()) {
+            safeSendUpdate(update, m, "", update.getMessage().getDocument().getFileId());
+        } else if (update.getMessage().hasPhoto()) {
             ArrayList<PhotoSize> photos = (ArrayList<PhotoSize>) update.getMessage().getPhoto();
             String photofile_id = "file_id :" + photos.stream()
                     .sorted(Comparator.comparing(PhotoSize::getFileSize).reversed())
                     .findFirst()
                     .orElse(null).getFileId();
             System.out.println("Photo file_id :" + photofile_id);
-            m.setChatId(update.getMessage().getChatId());
-            m.setText(photofile_id);
-            safeSendUpdate(m, "");
-        }
-
-
-        else if (updateHasText(update, "/chi")) {
-            m.setChatId(update.getMessage().getChatId());
-            m.setText("Questo è un progetto(schiavo, del gruppo(ci volevamo solo dare un nome boh) Ver.boH) frutto della curiosità di due ragazzi(ni) di scoprire un nuovo mondo: quello della programmazione.\n" +
+            safeSendUpdate(update, m, "", photofile_id);
+        } else if (updateHasText(update, "/chi")) {
+            safeSendUpdate(update, m, "", "Questo è un progetto(schiavo, del gruppo(ci volevamo solo dare un nome boh) Ver.boH) frutto della curiosità di due ragazzi(ni) di scoprire un nuovo mondo: quello della programmazione.\n" +
                     "Ci interessiamo principalmente di java, ma vogliamo anche cominciare ad usare altri linguaggi.\n" +
                     "Questa è la parte funzionante su telegram tel proj, ma ce n'è un' altra, quella sui nostri computer(che solo noi abbiamo" + EmojiParser.parseToUnicode(":smiling_imp:") + ") , che continuamo ad ampliare.\n" +
                     "*Eh, che dici, Eu? No, non gliel'ho detto che possono scaricare il progetto intero con /src usando la password SonoScemo, ovvio! Che, pensi che sia scemo?*\n" +
@@ -64,72 +53,28 @@ public class Schiavobot extends TelegramLongPollingBot {
                     "Speriamo che Schiavo ti piaccia, anche se al momento la parte che puoi usare tu è MOLTO ristretta.\n" +
                     "Eu e Gabri\n" + EmojiParser.parseToUnicode(":stuck_out_tongue_winking_eye:"));
 
-            safeSendUpdate(m, "Ops... Si è verificato u  errore...");
-        }
-
-
-        else if (updateHasText(update, "/aggiorna")) {
-            m.setChatId(update.getMessage().getChatId());
-            m.setText("Questa funzione non è ancora disponibile..." +
-                    EmojiParser.parseToUnicode(":pensive:"));
-            safeSendUpdate(m, "");
-        }
-
-        else if (updateHasText(update, "/src")) {
-            m.setChatId(update.getMessage().getChatId());
-            m.setText("Qual è la password?");
-            safeSendUpdate(m, "");
-
-            m.setChatId(update.getMessage().getChatId());
-            m.setText("Fra 3..." + EmojiParser.parseToUnicode(":no_mouth:"));
-            //InlineKeyboardMarkup inlk = new InlineKeyboardMarkup();
-            //List<List<InlineKeyboardButton>> rowsInline = new ArrayList<Object>();
-            //List<InlineKeyboardButton> rowInline = new ArrayList<Object>();
-            //rowInline.add(String.valueOf(new InlineKeyboardButton().setText("Update message text").setCallbackData("update_msg_text")));
-            safeSendUpdate(m, "");
-
-            m.setChatId(update.getMessage().getChatId());
-            m.setText("EVVOLEVY");
-
-            safeSendUpdate(m, "");
-           sleepFor(5);
-            d.setChatId(update.getMessage().getChatId());
-            m.setText("Ok no, seriamente, la cosa si sta rivelando più difficile del previsto.\n" +
+        } else if (updateHasText(update, "/start") || updateHasText(update, "Ciao")) {
+            safeSendUpdate(update, s, "", "CAACAgIAAxkBAAIPp142w9opqZieTbBK_5Do45KQxYJgAAIIAAPANk8Tb2wmC94am2kYBA");
+            sleepFor(1);
+            safeSendUpdate(update, m, "", "Ciao! Benvenuto allo Schiaver_bot!\nManda /chi per avere ulteriori informazioni");
+        } else if (updateHasText(update, "/aggiorna")) {
+            safeSendUpdate(update, m, "", "Questa funzione non è ancora disponibile..." + EmojiParser.parseToUnicode(":pensive:"));
+        } else if (updateHasText(update, "/src")) {
+            safeSendUpdate(update, m, "", "Comunque stavo scherzando, non c'è bisogno di una password");
+            sleepFor(1);
+            safeSendUpdate(update, m, "", "Però la cosa si sta rivelando più difficile del previsto:/\n" +
                     "Ti avviseremo *FORSE* appena sarà possibile\n" +
                     "GIURO CHE NON SONO SUPER PROTETTIVO DEL PROGETTO, OK? E' SOLO MOLTO DIFFICILE ED IO SONO SCEMO E AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAH");
-            safeSendUpdate(m, "");
-           sleepFor(7);
-            d.setDocument("BQACAgQAAxkBAAIPVl42g5wZ6YqeZkfOPcf0zYLKnqUcAAINBwAC2t3ZUTQjmtPCCD5tGAQ");
-            d.setCaption("jk tieni. Non ho fatto tutte le modifiche necessarie per farlo funzionare al 100% ma sono troppo pigro per farle LOL");
-
-            safeSendUpdate(d, "");
-           sleepFor(3);
-            m.setChatId(update.getMessage().getChatId());
-            m.setText("Ah P.S. è un progetto Maven");
-            try {
-                execute(m);
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
-
-        }
-        else if (updateHasText(update, "Ok boomer")) {
-            a.setChatId(update.getMessage().getChatId());
-            a.setAnimation("CgACAgQAAxkBAAIPJ142d29dXa3U1rMglhTGC_DIdNWkAAJhBgACJMmwUQkLxGIFm4XaGAQ");
-            safeSendUpdate(a, "");
-        }
-
-        else {
-            m.setChatId(update.getMessage().getChatId());
-            m.setText("Comando non riconosciuto" + EmojiParser.parseToUnicode(":fearful:") + "\n" +
-                    "Prova con uno dei comandi specificati" + EmojiParser.parseToUnicode(":point_down:"));
-            try {
-                execute(m);
-                System.out.println("Ho inviato una risposta!");
-            } catch (TelegramApiException e) {
-                System.out.println("Ops... Si è verificato un errore...");
-                e.printStackTrace();
-            }
+            sleepFor(7);
+            safeSendUpdate(update, d, "", "BQACAgQAAxkBAAIPVl42g5wZ6YqeZkfOPcf0zYLKnqUcAAINBwAC2t3ZUTQjmtPCCD5tGAQ", "jk tieni. Non ho fatto tutte le modifiche necessarie per farlo funzionare al 100% ma sono troppo pigro per farle LOL");
+            sleepFor(3);
+            safeSendUpdate(update, m, "", "Ah P.S. è un progetto Maven");
+            sleepFor(3);
+            safeSendUpdate(update, m, "", "Ah P.P.S. qui è il link al progetto su GitHub: https://github.com/Maiale-al-Mare/Schiaver_bot/");
+        } else if (updateHasText(update, "Ok boomer")) {
+            safeSendUpdate(update, a, "", "CgACAgQAAxkBAAIPJ142d29dXa3U1rMglhTGC_DIdNWkAAJhBgACJMmwUQkLxGIFm4XaGAQ", "");
+        } else {
+            safeSendUpdate(update, m, "", "Comando non riconosciiuto" + EmojiParser.parseToUnicode(":fearful:") + "\n" + "Prova con uno dei comandi specificati" + EmojiParser.parseToUnicode(":point_down:"));
         }
     }
 
@@ -151,7 +96,9 @@ public class Schiavobot extends TelegramLongPollingBot {
         }
     }
 
-    private void safeSendUpdate(SendMessage m, String error) {
+    private void safeSendUpdate(Update update, SendMessage m, String error, String message) {
+        m.setText(message);
+        m.setChatId(update.getMessage().getChatId());
         try {
             execute(m);
             System.out.println("I answered");
@@ -162,7 +109,10 @@ public class Schiavobot extends TelegramLongPollingBot {
         }
     }
 
-    private void safeSendUpdate(SendDocument d, String error) {
+    private void safeSendUpdate(Update update, SendDocument d, String error, String file_id, String caption) {
+        d.setDocument(file_id);
+        d.setChatId(update.getMessage().getChatId());
+        d.setCaption(caption);
         try {
             execute(d);
             System.out.println("I answered");
@@ -173,7 +123,10 @@ public class Schiavobot extends TelegramLongPollingBot {
         }
     }
 
-    private void safeSendUpdate(SendAnimation a, String error) {
+    private void safeSendUpdate(Update update, SendAnimation a, String error, String file_id, String caption) {
+        a.setAnimation(file_id);
+        a.setChatId(update.getMessage().getChatId());
+        a.setCaption(caption);
         try {
             execute(a);
             System.out.println("I answered");
@@ -183,7 +136,21 @@ public class Schiavobot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     }
-    private void sleepFor (int seconds){
+
+    private void safeSendUpdate(Update update, SendSticker s, String error, String file_id) {
+        s.setSticker(file_id);
+        s.setChatId(update.getMessage().getChatId());
+        try {
+            execute(s);
+            System.out.println("I answered");
+        } catch (TelegramApiException e) {
+            if (!error.isEmpty())
+                System.out.println(error);
+            e.printStackTrace();
+        }
+    }
+
+    private void sleepFor(int seconds) {
         try {
             TimeUnit.SECONDS.sleep(seconds);
         } catch (InterruptedException e) {
