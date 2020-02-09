@@ -85,7 +85,7 @@ public class Schiavobot extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "829542849:AAH3ax9KZ4rgAoVJqNYDTZNcLX2_H0T6Cek";
+        return "bot token";
     }
 
     private boolean updateHasText(Update update, String text) {
