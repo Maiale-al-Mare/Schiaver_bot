@@ -40,6 +40,11 @@
         <appender-ref ref="fileAppenderSchiavo" />
     </logger>
 
+    <logger name="console" additivity="false">
+        <level value="DEBUG" />
+        <appender-ref ref="console" />
+    </logger>
+
     <root>
         <priority value ="debug" />
         <appender-ref ref="fileAppenderTelegram" />

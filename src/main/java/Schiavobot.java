@@ -1,11 +1,9 @@
 import com.vdurmont.emoji.EmojiParser;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
-import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMembersCount;
+import org.telegram.telegrambots.bots.TelegramLongPollingBot;;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.KickChatMember;
-import org.telegram.telegrambots.meta.api.methods.groupadministration.RestrictChatMember;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.UnbanChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.*;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
@@ -15,10 +13,9 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.StrictMath.toIntExact;
@@ -27,7 +24,10 @@ public class Schiavobot extends TelegramLongPollingBot {
 
     Logger logger = LogManager.getLogger("Schiavo");
     Logger userLog = LogManager.getLogger("UserInfo");
+    Logger consoleLogger = LogManager.getLogger("console");
 
+    Map <String, Integer> map1 = new HashMap<>();
+    
     @Override
     public void onUpdateReceived(Update update) {
 
@@ -40,20 +40,21 @@ public class Schiavobot extends TelegramLongPollingBot {
         SendSticker s = new SendSticker();
         SendAudio aud = new SendAudio();
         SendPhoto p = new SendPhoto();
-        RestrictChatMember r = new RestrictChatMember();
         ZonedDateTime t = ZonedDateTime.now();
         KickChatMember k = new KickChatMember();
-        GetChatMembersCount gchm = new GetChatMembersCount();
+        UnbanChatMember unb = new UnbanChatMember();
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         List<InlineKeyboardButton> rowInline = new ArrayList<>();
-        GetChatMember chm = new GetChatMember();
-
-
         int message_id = getMessageId(update);
+        User from = update.getMessage().getFrom();
+
+        if (!map1.containsKey(from.getUserName())) {
+            map1.put("@"+from.getUserName(), from.getId());
+            consoleLogger.debug("Added " + from.getUserName());
+        }
 
         if (update.hasCallbackQuery()) {
-            // Set variables
             String call_data = update.getCallbackQuery().getData();
             long chat_id = update.getCallbackQuery().getMessage().getChatId();
             if (call_data.equals("update_msg_text")) {
@@ -116,6 +117,19 @@ public class Schiavobot extends TelegramLongPollingBot {
                     execute(new_message);
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
+                }
+                if (call_data.equals("unbanuser")) {
+                    String user = update.getMessage().getText();
+                    String nearlythere = user.replace("/ban@Schiaver_bot:", "@");
+                    String username = nearlythere.substring(nearlythere.indexOf("!"));
+                    String usernam3 = username.replace(":", "");
+                    unb.setChatId(update.getMessage().getChatId());
+                    unb.setUserId(map1.get(usernam3));
+                    try {
+                        execute(unb);
+                    } catch (TelegramApiException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -207,67 +221,85 @@ public class Schiavobot extends TelegramLongPollingBot {
             safeSendUpdate(update, a, "", "CgACAgQAAxkBAAIPJ142d29dXa3U1rMglhTGC_DIdNWkAAJhBgACJMmwUQkLxGIFm4XaGAQ", "");
         } else if (update.getMessage().getText().contains("/ban") || update.getMessage().getText().contains("/ban@Schiaver_bot") && !update.getMessage().isUserMessage()) {
             String user = update.getMessage().getText();
-            String nearlythere = user.replace("/ban@Schiaver_bot:", "@");
-            System.out.println(nearlythere);
-            String username = nearlythere.substring(0, nearlythere.indexOf("!"));
-            System.out.println(username);
-            String usernam3 = username.replace(":", "");
-            System.out.println(usernam3);
-            String[] splitbits = user.split(":");
-            if (update.getMessage().getText().contains("!")) {
-                String time = nearlythere.replace(username + "!", "");
+            String cleanedCommand = user.replace("/ban@Schiaver_bot:", "@");
+            String[] split = cleanedCommand.split(":");
+            String userToBan = split[0];
+            String timeString = split[1];
+            if (timeString.contains("!")) {
+                String time = timeString.replace( "!", "");
                 long tim3 = Long.valueOf(time).longValue();
                 k.setUntilDate(t.plusMinutes(tim3));
             }
-            if (update.getMessage().getText().contains("?")) {
-                String time = nearlythere.replace(username + "?", "");
+            if (timeString.contains("?")) {
+                String time = timeString.replace("?", "");
                 long tim3 = Long.valueOf(time).longValue();
                 k.setUntilDate(t.plusHours(tim3));
 
             }
-            if (update.getMessage().getText().contains("#")) {
-                String time = nearlythere.replace(username + "#", "");
+            if (timeString.contains("#")) {
+                String time = timeString.replace("#", "");
                 long tim3 = Long.valueOf(time).longValue();
                 k.setUntilDate(t.plusDays(tim3));
             }
             k.setChatId(update.getMessage().getChatId());
-            k.setUserId(update.getMessage().getFrom().getId());
-            System.out.println(update.getMessage().getChat().getUserName());
+            k.setUserId(map1.get(userToBan));
             try {
                 execute(k);
             } catch (TelegramApiException e) {
                 e.printStackTrace();
-                safeSendUpdate(update, m, "", "Errore! Controlla di aver scritto bene il messaggio e che la persona da bannare non sia un amministratore");
+                safeSendUpdate(update, m, "", "Errore! Controlla di aver scritto bene il messaggio ,che la persona da bannare non sia un amministratore e che questa abbbia mandato un messaggio in questo gruppo");
+            }
+
+            rowInline.add(new InlineKeyboardButton().setText("Annulla").setCallbackData("unbanchatmember"));
+            rowsInline.add(rowInline);
+            markupInline.setKeyboard(rowsInline);
+            m.setChatId(update.getMessage().getChatId());
+            m.setText("Utente " + userToBan + " bannato");
+            m.setReplyMarkup(markupInline);
+            try {
+                execute(m);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
             }
 
 
-            if (!(splitbits.length == 3)) {
-                safeSendUpdate(update, m, "", "Devi inserire 3 parametri!(separatore :)");
-            }
-
-
-            /*Date until = t.plusHours();
-            k.setUserId(k.getUserId());
-            k.setChatId();
-            k.setUntilDate()*/
-        } else if (update.getMessage().getText().contains("/ban")&&update.getMessage().isUserMessage()) {
+        } else if (update.getMessage().getText().contains("/ban") && update.getMessage().isUserMessage()) {
             safeSendUpdate(update, m, "", "Questo comando va usato nei gruppi!");
-        /*}else if(update.getMessage().getText().contains("/mute")){
-          String user = update.getMessage().getText();
-          String usertowarn = user.replace("/mute:", "");
-          r.setChatId(update.getMessage().getChatId());
-          r.setCanAddWebPagePreviews(false);
-          r.setCanSendMediaMessages(false);
-          r.setCanSendMessages(false);
-          r.setCanSendOtherMessages(false);
-          r.setUserId(update.getMessage().getFrom().getId());
-          try{
-              execute(r);
-          }catch (TelegramApiException e){
-              e.printStackTrace();
-          }
-*/
-    }else {
+        /*} else if (update.getMessage().getText().contains("/mute")) {
+        }
+        String usertowarnquestion = user.substring(nearlythere.indexOf("?"));
+        String usertowarn = user.replace("/mute:", "@");
+        String usertowarnhash = usertowarn.substring(nearlythere.indexOf("#"));
+        String usertowarnexclamation = usertowarn.substring(nearlythere.indexOf("!"));
+
+        r.setChatId(update.getMessage().getChatId());
+        r.setUserId(map1.get(usertowarn));
+        r.setCanSendMessages(false);
+        r.setCanSendOtherMessages(false);
+        r.setCanAddWebPagePreviews(false);
+        if (update.getMessage().getText().contains("!")) {
+            String time = usertowarnexclamation.replace(usertowarn + "!", "");
+            long tim3 = Long.valueOf(time).longValue();
+            r.setUntilDate(t.plusMinutes(tim3));
+        }
+        if (update.getMessage().getText().contains("?")) {
+            String time = usertowarnquestion.replace(usertowarnquestion + "?", "");
+            long tim3 = Long.valueOf(time).longValue();
+            r.setUntilDate(t.plusHours(tim3));
+        }
+        if (update.getMessage().getText().contains("#")) {
+            String time = usertowarnhash.replace(usertowarn + "#", "");
+            long tim3 = Long.valueOf(time).longValue();
+            r.setUntilDate(t.plusDays(tim3));
+
+        try {
+            execute(r);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }*/
+
+
+        } else {
             if (update.getMessage().isChannelMessage() || update.getMessage().isSuperGroupMessage() || update.getMessage().isGroupMessage() || update.getMessage().getText().equals("/start") || update.getMessage().getText().equals("/start@Schiaver_bot")) {
                 System.out.println("Ok");
             } else {
@@ -304,14 +336,6 @@ public class Schiavobot extends TelegramLongPollingBot {
         }
     }
 
-    private void inlineKeyboardMarkup(int numberoftimes, String buttontext, String callbackdata) {
-        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
-        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-        List<InlineKeyboardButton> rowInline = new ArrayList<>();
-        rowInline.add(new InlineKeyboardButton().setText(buttontext).setCallbackData(callbackdata));
-        rowsInline.add(rowInline);
-        markupInline.setKeyboard(rowsInline);
-    }
 
     private void deleteMessage(Update update, DeleteMessage dmsg, String error) {
         System.out.println("Message ID: " + update.getMessage().getMessageId());
