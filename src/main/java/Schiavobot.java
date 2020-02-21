@@ -1,7 +1,7 @@
 import com.vdurmont.emoji.EmojiParser;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.telegram.telegrambots.bots.TelegramLongPollingBot;;
+import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.KickChatMember;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.UnbanChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.*;
@@ -55,6 +55,7 @@ public class Schiavobot extends TelegramLongPollingBot {
         }
 
         if (update.hasCallbackQuery()) {
+            System.out.println("Callback query found");
             String call_data = update.getCallbackQuery().getData();
             long chat_id = update.getCallbackQuery().getMessage().getChatId();
             if (call_data.equals("update_msg_text")) {
@@ -144,10 +145,9 @@ public class Schiavobot extends TelegramLongPollingBot {
             System.out.println("From :" + update.getMessage().getFrom());
 
 
-            if (updateHasText(update, "/start") || update.getMessage().getText().contains("Ciao") || updateHasText(update, "/start@Schiaver_bot")) {
+            if (updateHasText(update, "/start") || update.getMessage().getText().toLowerCase().contains("ciao") || updateHasText(update, "/start@Schiaver_bot")) {
                 long chat_id = update.getMessage().getChatId();
                 safeSendUpdate(update, s, "", "CAACAgIAAxkBAAIPp142w9opqZieTbBK_5Do45KQxYJgAAIIAAPANk8Tb2wmC94am2kYBA");
-                sleepFor(1);
                 m.setChatId(chat_id);
                 if (!update.getMessage().isUserMessage()) {
                     m.setReplyToMessageId(message_id);
@@ -220,6 +220,7 @@ public class Schiavobot extends TelegramLongPollingBot {
         } else if (updateHasText(update, "Ok boomer")) {
             safeSendUpdate(update, a, "", "CgACAgQAAxkBAAIPJ142d29dXa3U1rMglhTGC_DIdNWkAAJhBgACJMmwUQkLxGIFm4XaGAQ", "");
         } else if (update.getMessage().getText().contains("/ban") || update.getMessage().getText().contains("/ban@Schiaver_bot") && !update.getMessage().isUserMessage()) {
+            DeleteMessage dmsg = new DeleteMessage(update.getMessage().getChatId(), update.getMessage().getMessageId());
             String user = update.getMessage().getText();
             String cleanedCommand = user.replace("/ban@Schiaver_bot:", "@");
             String[] split = cleanedCommand.split(":");
@@ -243,24 +244,26 @@ public class Schiavobot extends TelegramLongPollingBot {
             }
             k.setChatId(update.getMessage().getChatId());
             k.setUserId(map1.get(userToBan));
+            deleteMessage(update, dmsg, "");
             try {
                 execute(k);
+                rowInline.add(new InlineKeyboardButton().setText("Annulla").setCallbackData("unbanuser"));
+                rowsInline.add(rowInline);
+                markupInline.setKeyboard(rowsInline);
+                m.setChatId(update.getMessage().getChatId());
+                m.setText("Utente " + userToBan + " bannato");
+                m.setReplyMarkup(markupInline);
+                try {
+                    execute(m);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
             } catch (TelegramApiException e) {
                 e.printStackTrace();
                 safeSendUpdate(update, m, "", "Errore! Controlla di aver scritto bene il messaggio ,che la persona da bannare non sia un amministratore e che questa abbbia mandato un messaggio in questo gruppo");
             }
 
-            rowInline.add(new InlineKeyboardButton().setText("Annulla").setCallbackData("unbanchatmember"));
-            rowsInline.add(rowInline);
-            markupInline.setKeyboard(rowsInline);
-            m.setChatId(update.getMessage().getChatId());
-            m.setText("Utente " + userToBan + " bannato");
-            m.setReplyMarkup(markupInline);
-            try {
-                execute(m);
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
+
 
 
         } else if (update.getMessage().getText().contains("/ban") && update.getMessage().isUserMessage()) {
@@ -437,6 +440,7 @@ public class Schiavobot extends TelegramLongPollingBot {
         try {
             TimeUnit.SECONDS.sleep(seconds);
         } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }
