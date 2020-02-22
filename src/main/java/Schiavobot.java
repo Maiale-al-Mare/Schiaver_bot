@@ -26,8 +26,15 @@ public class Schiavobot extends TelegramLongPollingBot {
     Logger userLog = LogManager.getLogger("UserInfo");
     Logger consoleLogger = LogManager.getLogger("console");
 
-    Map <String, Integer> map1 = new HashMap<>();
-    
+    // Used for tracking userIds from user name - used for banning
+    Map<String, Integer> map1 = new HashMap<>();
+
+    private static final String CALLBACK_BUTTON_UPDATE_MESSAGE_TEXT = "update_msg_text";
+    private static final String CALLBACK_BUTTON_UPDATE_DAI_SCHERZO = "no_really";
+    private static final String CALLBACK_BUTTON_UPDATE_THUMBSUP = "thumbsup";
+    private static final String CALLBACK_BUTTON_UPDATE_UNBAN_CMD = "unban_user";
+    private static final String CALLBACK_BUTTON_UPDATE_FROWN_FACE = "frown";
+
     @Override
     public void onUpdateReceived(Update update) {
 
@@ -47,19 +54,15 @@ public class Schiavobot extends TelegramLongPollingBot {
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         List<InlineKeyboardButton> rowInline = new ArrayList<>();
         int message_id = getMessageId(update);
-        User from = update.getMessage().getFrom();
 
-        if (!map1.containsKey(from.getUserName())) {
-            map1.put("@"+from.getUserName(), from.getId());
-            consoleLogger.debug("Added " + from.getUserName());
-        }
+        captureUserIds(update);
 
         if (update.hasCallbackQuery()) {
-            System.out.println("Callback query found");
             String call_data = update.getCallbackQuery().getData();
+            System.out.println("Callback query found");
             long chat_id = update.getCallbackQuery().getMessage().getChatId();
-            if (call_data.equals("update_msg_text")) {
-                rowInline.add(new InlineKeyboardButton().setText("Ok").setCallbackData("2"));
+            if (call_data.equals(CALLBACK_BUTTON_UPDATE_MESSAGE_TEXT)) {
+                rowInline.add(new InlineKeyboardButton().setText("Ok").setCallbackData(CALLBACK_BUTTON_UPDATE_THUMBSUP));
                 rowsInline.add(rowInline);
                 markupInline.setKeyboard(rowsInline);
                 EditMessageText new_message = new EditMessageText()
@@ -79,8 +82,8 @@ public class Schiavobot extends TelegramLongPollingBot {
                     e.printStackTrace();
                 }
             }
-            if (call_data.equals("1")) {
-                rowInline.add(new InlineKeyboardButton().setText("No dai scherzo").setCallbackData("3"));
+            if (call_data.equals(CALLBACK_BUTTON_UPDATE_FROWN_FACE)) {
+                rowInline.add(new InlineKeyboardButton().setText("No dai scherzo").setCallbackData(CALLBACK_BUTTON_UPDATE_DAI_SCHERZO));
                 rowsInline.add(rowInline);
                 markupInline.setKeyboard(rowsInline);
                 EditMessageText new_message = new EditMessageText()
@@ -94,7 +97,7 @@ public class Schiavobot extends TelegramLongPollingBot {
                     e.printStackTrace();
                 }
             }
-            if (call_data.equals("2")) {
+            if (call_data.equals(CALLBACK_BUTTON_UPDATE_THUMBSUP)) {
                 EditMessageText new_message = new EditMessageText()
                         .setChatId(chat_id)
                         .setMessageId(toIntExact(message_id))
@@ -105,8 +108,8 @@ public class Schiavobot extends TelegramLongPollingBot {
                     e.printStackTrace();
                 }
             }
-            if (call_data.equals("3")) {
-                rowInline.add(new InlineKeyboardButton().setText("Allora, mi fai vedere o no?").setCallbackData("update_msg_text"));
+            if (call_data.equals(CALLBACK_BUTTON_UPDATE_DAI_SCHERZO)) {
+                rowInline.add(new InlineKeyboardButton().setText("Allora, mi fai vedere o no?").setCallbackData(CALLBACK_BUTTON_UPDATE_MESSAGE_TEXT));
                 rowsInline.add(rowInline);
                 markupInline.setKeyboard(rowsInline);
                 EditMessageText new_message = new EditMessageText()
@@ -119,18 +122,22 @@ public class Schiavobot extends TelegramLongPollingBot {
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
-                if (call_data.equals("unbanuser")) {
-                    String user = update.getMessage().getText();
-                    String nearlythere = user.replace("/ban@Schiaver_bot:", "@");
-                    String username = nearlythere.substring(nearlythere.indexOf("!"));
-                    String usernam3 = username.replace(":", "");
-                    unb.setChatId(update.getMessage().getChatId());
-                    unb.setUserId(map1.get(usernam3));
-                    try {
-                        execute(unb);
-                    } catch (TelegramApiException e) {
-                        e.printStackTrace();
-                    }
+            }
+
+            if (call_data.startsWith(CALLBACK_BUTTON_UPDATE_UNBAN_CMD)) {
+                String user = call_data.replaceAll(CALLBACK_BUTTON_UPDATE_UNBAN_CMD + ":","");
+                unb.setChatId(update.getCallbackQuery().getMessage().getChatId());
+                unb.setUserId(map1.get(user));
+                EditMessageText new_message = new EditMessageText()
+                        .setChatId(chat_id)
+                        .setMessageId(toIntExact(message_id))
+                        .setText("Utente " + user + " può di nuovo unirsi al gruppo");
+                new_message.setReplyMarkup(markupInline);
+                try {
+                    execute(unb);
+                    execute(new_message);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -144,8 +151,7 @@ public class Schiavobot extends TelegramLongPollingBot {
             System.out.println("Chat :" + update.getMessage().getChat());
             System.out.println("From :" + update.getMessage().getFrom());
 
-
-            if (updateHasText(update, "/start") || update.getMessage().getText().toLowerCase().contains("ciao") || updateHasText(update, "/start@Schiaver_bot")) {
+            if (updateHasText(update, "/start") || updateHasText(update, "/start@Schiaver_bot")) {
                 long chat_id = update.getMessage().getChatId();
                 safeSendUpdate(update, s, "", "CAACAgIAAxkBAAIPp142w9opqZieTbBK_5Do45KQxYJgAAIIAAPANk8Tb2wmC94am2kYBA");
                 m.setChatId(chat_id);
@@ -156,8 +162,8 @@ public class Schiavobot extends TelegramLongPollingBot {
                     m.setText("Ciao, @" + update.getMessage().getChat().getUserName() + ", Benvenuto allo Schiaver_bot! Premi il bottone per saperne di più");
 
                 }
-                rowInline.add(new InlineKeyboardButton().setText("Chi?").setCallbackData("update_msg_text"));
-                rowInline.add(new InlineKeyboardButton().setText("No me ne vado").setCallbackData("1"));
+                rowInline.add(new InlineKeyboardButton().setText("Chi?").setCallbackData(CALLBACK_BUTTON_UPDATE_MESSAGE_TEXT));
+                rowInline.add(new InlineKeyboardButton().setText("No me ne vado").setCallbackData(CALLBACK_BUTTON_UPDATE_FROWN_FACE));
                 rowsInline.add(rowInline);
                 markupInline.setKeyboard(rowsInline);
                 m.setReplyMarkup(markupInline);
@@ -227,7 +233,7 @@ public class Schiavobot extends TelegramLongPollingBot {
             String userToBan = split[0];
             String timeString = split[1];
             if (timeString.contains("!")) {
-                String time = timeString.replace( "!", "");
+                String time = timeString.replace("!", "");
                 long tim3 = Long.valueOf(time).longValue();
                 k.setUntilDate(t.plusMinutes(tim3));
             }
@@ -247,11 +253,11 @@ public class Schiavobot extends TelegramLongPollingBot {
             deleteMessage(update, dmsg, "");
             try {
                 execute(k);
-                rowInline.add(new InlineKeyboardButton().setText("Annulla").setCallbackData("unbanuser"));
+                rowInline.add(new InlineKeyboardButton().setText("Annulla").setCallbackData(CALLBACK_BUTTON_UPDATE_UNBAN_CMD + ":" + userToBan));
                 rowsInline.add(rowInline);
                 markupInline.setKeyboard(rowsInline);
                 m.setChatId(update.getMessage().getChatId());
-                m.setText("Utente " + userToBan + " bannato");
+                m.setText("Utente " + userToBan + " bannato (⌐■-■)");
                 m.setReplyMarkup(markupInline);
                 try {
                     execute(m);
@@ -262,8 +268,6 @@ public class Schiavobot extends TelegramLongPollingBot {
                 e.printStackTrace();
                 safeSendUpdate(update, m, "", "Errore! Controlla di aver scritto bene il messaggio ,che la persona da bannare non sia un amministratore e che questa abbbia mandato un messaggio in questo gruppo");
             }
-
-
 
 
         } else if (update.getMessage().getText().contains("/ban") && update.getMessage().isUserMessage()) {
@@ -441,6 +445,17 @@ public class Schiavobot extends TelegramLongPollingBot {
             TimeUnit.SECONDS.sleep(seconds);
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void captureUserIds(Update update) {
+        if (update.hasMessage()) {
+            User from = update.getMessage().getFrom();
+
+            if (!map1.containsKey(from.getUserName())) {
+                map1.put("@" + from.getUserName(), from.getId());
+                consoleLogger.debug("Added " + from.getUserName());
+            }
         }
     }
 }
