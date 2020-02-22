@@ -109,16 +109,14 @@ public class Schiavobot extends TelegramLongPollingBot {
                 }
             }
             if (call_data.equals(CALLBACK_BUTTON_UPDATE_DAI_SCHERZO)) {
-                rowInline.add(new InlineKeyboardButton().setText("Allora, mi fai vedere o no?").setCallbackData(CALLBACK_BUTTON_UPDATE_MESSAGE_TEXT));
-                rowsInline.add(rowInline);
-                markupInline.setKeyboard(rowsInline);
-                EditMessageText new_message = new EditMessageText()
-                        .setChatId(chat_id)
-                        .setMessageId(toIntExact(message_id))
-                        .setText(":^)");
-                new_message.setReplyMarkup(markupInline);
+                SendMessage message = InlineKeyboardBuilder.create(chat_id)
+                        .setText(":^)")
+                        .row()
+                        .button("Allora, mi fai vedere o no?", CALLBACK_BUTTON_UPDATE_MESSAGE_TEXT)
+                        .endRow()
+                        .build();
                 try {
-                    execute(new_message);
+                    execute(message);
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
