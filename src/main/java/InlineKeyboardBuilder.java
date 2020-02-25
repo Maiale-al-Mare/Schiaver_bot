@@ -1,4 +1,6 @@
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
@@ -52,6 +54,21 @@ public class InlineKeyboardBuilder {
         return this;
     }
 
+    public EditMessageText edit(String text){
+        Update update = new Update();
+        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+        keyboardMarkup.setKeyboard(keyboard);
+
+        EditMessageText newmessage = new EditMessageText();
+
+        newmessage.setChatId(chatId);
+        newmessage.setMessageId(update.getMessage().getMessageId());
+        newmessage.setText(text);
+        newmessage.setReplyMarkup(keyboardMarkup);
+
+
+        return newmessage;
+    }
 
     public SendMessage build() {
         SendMessage message = new SendMessage();
@@ -60,8 +77,8 @@ public class InlineKeyboardBuilder {
         message.setText(text);
 
         InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
-
         keyboardMarkup.setKeyboard(keyboard);
+
         message.setReplyMarkup(keyboardMarkup);
 
         return message;
