@@ -65,7 +65,7 @@ public class Schiavobot extends TelegramLongPollingBot {
         List<InlineKeyboardButton> rowInline = new ArrayList<>();
         int message_id = getMessageId(update);
         PromoteChatMember promoteChatMember = new PromoteChatMember();
-        User from = update.getMessage().getFrom();
+        User from = captureUserIds(update);
         int ismessagingcreator = 0;
 
         if (map1 == null) {
@@ -108,7 +108,7 @@ public class Schiavobot extends TelegramLongPollingBot {
                     e.printStackTrace();
                 }
             }
-            
+
             if (call_data.equals(CALLBACK_BUTTON_UPDATE_BACK)){
                 ismessagingcreator = 0;
                 EditMessageText new_message = new EditMessageText()
@@ -690,6 +690,16 @@ public class Schiavobot extends TelegramLongPollingBot {
             TimeUnit.SECONDS.sleep(seconds);
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+    private User captureUserIds(Update update) {
+        if (update.hasMessage()) {
+            User from = update.getMessage().getFrom();
+            return from;
+        }
+        else {
+            User from = update.getCallbackQuery().getFrom();
+            return from;
         }
     }
 }
