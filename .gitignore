@@ -4,3 +4,4 @@ target/
 *.war
 *.ear
 *.logs
+*.ser
