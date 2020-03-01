@@ -116,6 +116,7 @@ public class Schiavobot extends TelegramLongPollingBot {
                         .setChatId(chat_id)
                         .setMessageId(toIntExact(message_id))
                         .setText("Perfetto! :D");
+                System.out.println("User closed contact with the developer");
                 try {
                     execute(new_message);
                 } catch (TelegramApiException e) {
