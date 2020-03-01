@@ -1,26 +1,26 @@
 import com.vdurmont.emoji.EmojiParser;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.ActionType;
-import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
-import org.telegram.telegrambots.meta.api.methods.groupadministration.KickChatMember;
-import org.telegram.telegrambots.meta.api.methods.groupadministration.PromoteChatMember;
-import org.telegram.telegrambots.meta.api.methods.groupadministration.RestrictChatMember;
-import org.telegram.telegrambots.meta.api.methods.groupadministration.UnbanChatMember;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.*;
 import org.telegram.telegrambots.meta.api.methods.send.*;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.ChatPermissions;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -59,14 +59,15 @@ public class Schiavobot extends TelegramLongPollingBot {
         ZonedDateTime t = ZonedDateTime.now();
         KickChatMember k = new KickChatMember();
         UnbanChatMember unb = new UnbanChatMember();
-        ForwardMessage f = new ForwardMessage();
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         List<InlineKeyboardButton> rowInline = new ArrayList<>();
         int message_id = getMessageId(update);
-        PromoteChatMember promoteChatMember = new PromoteChatMember();
         User from = captureUserIds(update);
+
+
         int ismessagingcreator = 0;
+
 
         if (map1 == null) {
             consoleLogger.debug("Loading map");
@@ -109,7 +110,7 @@ public class Schiavobot extends TelegramLongPollingBot {
                 }
             }
 
-            if (call_data.equals(CALLBACK_BUTTON_UPDATE_BACK)){
+            if (call_data.equals(CALLBACK_BUTTON_UPDATE_BACK)) {
                 ismessagingcreator = 0;
                 EditMessageText new_message = new EditMessageText()
                         .setChatId(chat_id)
@@ -165,52 +166,88 @@ public class Schiavobot extends TelegramLongPollingBot {
             }
 
             if (call_data.contains(CALLBACK_BUTTON_UPDATE_UNMUTE)) {
-                String user = call_data.substring(7);
-                System.out.println(user);
-                EditMessageText new_message = new EditMessageText()
-                        .setChatId(chat_id)
-                        .setMessageId(toIntExact(message_id))
-                        .setText("L'utente " + user + " può di nuovo esprimersi");
-                ChatPermissions permissions = new ChatPermissions();
-                permissions.setCanAddWebPagePreviews(true);
-                permissions.setCanChangeInfo(false);
-                permissions.setCanInviteUsers(true);
-                permissions.setCanPinMessages(false);
-                permissions.setCanSendMessages(true);
-                permissions.setCanSendOtherMessages(true);
-                permissions.setCanSendPolls(true);
-                permissions.setGetCanSendMediaMessages(true);
-                RestrictChatMember r = new RestrictChatMember();
-                r.setPermissions(permissions);
-                r.setUserId(Integer.valueOf((Integer) map1.get(user)));
-                r.setChatId(update.getMessage().getChatId());
-                try {
-                    execute(new_message);
-                    execute(r);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
+                if (call_data.contains(update.getCallbackQuery().getFrom().getUserName())) {
+                    String user = call_data.substring(7);
+                    System.out.println(user);
+                    if (user.contains(update.getCallbackQuery().getFrom().getUserName())) {
+                        String us3r = user.replace(":" + update.getCallbackQuery().getFrom().getUserName(), "");
+                        System.out.println(us3r);
+                        EditMessageText new_message = new EditMessageText()
+                                .setChatId(chat_id)
+                                .setMessageId(toIntExact(message_id))
+                                .setText("L'utente " + us3r + " può di nuovo esprimersi");
+                        ChatPermissions permissions = new ChatPermissions();
+                        permissions.setCanAddWebPagePreviews(true);
+                        permissions.setCanChangeInfo(false);
+                        permissions.setCanInviteUsers(true);
+                        permissions.setCanPinMessages(false);
+                        permissions.setCanSendMessages(true);
+                        permissions.setCanSendOtherMessages(true);
+                        permissions.setCanSendPolls(true);
+                        permissions.setGetCanSendMediaMessages(true);
+                        RestrictChatMember r = new RestrictChatMember();
+                        r.setPermissions(permissions);
+                        r.setUserId(Integer.valueOf((Integer) map1.get(us3r)));
+                        r.setChatId(update.getCallbackQuery().getMessage().getChatId());
+                        try {
+                            execute(new_message);
+                            execute(r);
+                        } catch (TelegramApiException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } else {
+                    System.out.println(">:(");
+                    AnswerCallbackQuery ans = new AnswerCallbackQuery();
+                    ans.setCallbackQueryId(update.getCallbackQuery().getId());
+                    ans.setText("Solo chi ha mutato l'utente può smutarlo!");
+                    ans.setShowAlert(true);
+                    try {
+                        execute(ans);
+                    } catch (TelegramApiException err) {
+                        err.printStackTrace();
+                    }
                 }
             }
 
             if (call_data.startsWith(CALLBACK_BUTTON_UPDATE_UNBAN_CMD)) {
-                String user = call_data.replaceAll(CALLBACK_BUTTON_UPDATE_UNBAN_CMD + ":", "");
-                System.out.println(user);
-                unb.setChatId(update.getCallbackQuery().getMessage().getChatId());
-                unb.setUserId((Integer) map1.get(user));
+                if (call_data.contains(update.getCallbackQuery().getFrom().getUserName())) {
+                    String user = call_data.replaceAll(CALLBACK_BUTTON_UPDATE_UNBAN_CMD + ":", "");
+                    if (user.contains(update.getCallbackQuery().getFrom().getUserName())) {
+                        System.out.println(update.getCallbackQuery().getFrom().getUserName());
+                        String us3r = user.replaceAll(":" + update.getCallbackQuery().getFrom().getUserName(), "");
+                        System.out.println(us3r);
+                        unb.setChatId(update.getCallbackQuery().getMessage().getChatId());
+                        unb.setUserId((Integer) map1.get(us3r));
 
-                EditMessageText new_message = new EditMessageText()
-                        .setChatId(chat_id)
-                        .setMessageId(toIntExact(message_id))
-                        .setText("L'utente " + user + " può di nuovo unirsi al gruppo");
-                new_message.setReplyMarkup(markupInline);
-                try {
-                    execute(unb);
-                    execute(new_message);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
+                        EditMessageText new_message = new EditMessageText()
+                                .setChatId(chat_id)
+                                .setMessageId(toIntExact(message_id))
+                                .setText("L'utente " + us3r + " può di nuovo unirsi al gruppo");
+                        new_message.setReplyMarkup(markupInline);
+                        try {
+                            execute(unb);
+                            execute(new_message);
+                        } catch (TelegramApiException e) {
+
+                            e.printStackTrace();
+                        }
+
+                    }
+                } else {
+                    AnswerCallbackQuery ans = new AnswerCallbackQuery();
+                    ans.setCallbackQueryId(update.getCallbackQuery().getId());
+                    ans.setText("Solo chi ha bannato questo utente può revocare il ban!");
+                    ans.setShowAlert(true);
+                    try {
+                        execute(ans);
+                    } catch (TelegramApiException err) {
+                        err.printStackTrace();
+                    }
                 }
             }
         }
+
 
         if (update.hasMessage() && update.getMessage().hasText()) {
 
@@ -220,7 +257,10 @@ public class Schiavobot extends TelegramLongPollingBot {
             System.out.println("ChatID :" + update.getMessage().getChatId());
             System.out.println("Chat :" + update.getMessage().getChat());
             System.out.println("From :" + update.getMessage().getFrom());
-            //System.out.println("Status: " + chatMember.getStatus());
+            ChatMember chatMember = new ChatMember();
+            System.out.println(chatMember);
+            System.out.println(chatMember.getUser());
+            System.out.println("Status: " + chatMember.getStatus());
 
             if (updateHasText(update, "/start") || updateHasText(update, "/start@Schiaver_bot") || updateHasText(update, "Chi?" + EmojiParser.parseToUnicode(":eyes:"))) {
                 long chat_id = update.getMessage().getChatId();
@@ -246,10 +286,8 @@ public class Schiavobot extends TelegramLongPollingBot {
             }
         }
 
-        while (ismessagingcreator == 1){
-            f.setFromChatId(update.getMessage().getChatId());
-            f.setChatId((long) -458202455);
-            f.setMessageId(update.getMessage().getMessageId());
+        while (ismessagingcreator == 1) {
+
         }
 
         if (update.hasMessage() && update.getMessage().hasDocument()) {
@@ -265,31 +303,6 @@ public class Schiavobot extends TelegramLongPollingBot {
             m.setReplyToMessageId(message_id);
             System.out.println("Photo file_id: " + photofile_id);
             safeSendUpdate(update, m, "", photofile_id);
-        } else if (update.getMessage().getText().contains("/promuovi")) {
-            String command = update.getMessage().getText();
-            System.out.println(command);
-            String usertopromote = command.substring(23);
-            System.out.println(usertopromote);
-            promoteChatMember.setChatId(update.getMessage().getChatId());
-            promoteChatMember.setUserId(Integer.valueOf((Integer) map1.get(usertopromote)));
-            promoteChatMember.setCanChangeInformation(false);
-            promoteChatMember.setCanDeleteMessages(true);
-            promoteChatMember.setCanEditMessages(true);
-            promoteChatMember.setCanInviteUsers(false);
-            promoteChatMember.setCanPinMessages(true);
-            promoteChatMember.setCanPostMessages(true);
-            promoteChatMember.setCanPromoteMembers(false);
-            promoteChatMember.setCanRestrictMembers(true);
-            DeleteMessage dmsg = new DeleteMessage(update.getMessage().getChatId(), update.getMessage().getMessageId());
-            deleteMessage(update, dmsg, "");
-            try {
-                execute(promoteChatMember);
-                safeSendUpdate(update, m, "", "Utente " + usertopromote + " promosso ad amministratore, anche se senza pieni poteri (⌐■-■)");
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-                m.setParseMode("HTML");
-                safeSendUpdate(update, m, "", "Errore! Controlla <b>che tu sia amministratore</b>, che la persona da promuovere non lo sia e che essa abbia già mandato un messaggio in questo gruppo");
-            }
         } else if (updateHasText(update, "/help") || updateHasText(update, "/help@Schiaver_bot")) {
             ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
             List<KeyboardRow> keyboard = new ArrayList<>();
@@ -304,20 +317,17 @@ public class Schiavobot extends TelegramLongPollingBot {
             row.add("Ban >:^(");
             keyboard.add(row);
             KeyboardRow anotherrow = new KeyboardRow();
-            anotherrow.add("Promuovi");
+            anotherrow.add("Muta " + EmojiParser.parseToUnicode(":microphone:"));
             anotherrow.add("Kek");
             keyboard.add(anotherrow);
             KeyboardRow row1 = new KeyboardRow();
-            row1.add("Muta " + EmojiParser.parseToUnicode(":microphone:"));
+            row1.add("Revive chat " + EmojiParser.parseToUnicode(":sparkles:") + EmojiParser.parseToUnicode(":star:"));
             row1.add("Kill chat " + EmojiParser.parseToUnicode(":hocho:"));
             keyboard.add(row1);
             KeyboardRow row2 = new KeyboardRow();
-            row2.add("Revive chat " + EmojiParser.parseToUnicode(":sparkles:") + EmojiParser.parseToUnicode(":star:"));
             row2.add("Altro " + EmojiParser.parseToUnicode(":no_mouth:"));
+            row2.add("Contatta lo sviluppatore " + EmojiParser.parseToUnicode(":wink:"));
             keyboard.add(row2);
-            KeyboardRow row3 = new KeyboardRow();
-            row3.add("Contatta lo sviluppatore " + EmojiParser.parseToUnicode(":wink:"));
-            keyboard.add(row3);
             keyboardMarkup.setKeyboard(keyboard);
             m.setReplyMarkup(keyboardMarkup);
             try {
@@ -338,6 +348,98 @@ public class Schiavobot extends TelegramLongPollingBot {
             System.out.println("Sticker file_id: " + "file_id:\n" + update.getMessage().getSticker().getFileId());
             m.setReplyToMessageId(message_id);
             safeSendUpdate(update, m, "", "file_id:\n" + update.getMessage().getSticker().getFileId());
+        } else if (updateHasText(update, "/dog")||updateHasText(update, "/dog@Schiaver_bot")) {
+            String dogjson = "";
+            try {
+                URL url = new URL("https://random.dog/woof.json");
+                URLConnection yc = null;
+                yc = url.openConnection();
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(
+                                yc.getInputStream()));
+                String inputLine;
+
+                while ((inputLine = in.readLine()) != null) {
+                    System.out.println(inputLine);
+                    dogjson = dogjson + inputLine;
+                }
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+            JSONObject obj = new JSONObject(dogjson);
+
+            String pageName = obj.getString("url");
+            consoleLogger.info(pageName);
+            if (pageName.toLowerCase().endsWith(".jpg")||pageName.toLowerCase().endsWith(".jpeg")||pageName.toLowerCase().endsWith(".png")) {
+                SendPhoto ph = new SendPhoto();
+                ph.setPhoto(pageName);
+                ph.setChatId(update.getMessage().getChatId());
+                ph.setCaption("DOG!!");
+                try {
+                    execute(ph);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            } else if (pageName.toLowerCase().endsWith(".mp4")||pageName.toLowerCase().endsWith(".webm")) {
+                SendVideo vid = new SendVideo();
+                vid.setVideo(pageName);
+                vid.setChatId(update.getMessage().getChatId());
+                vid.setCaption("DOG!!");
+                try {
+                    execute(vid);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            } else if (pageName.toLowerCase().endsWith(".gif")) {
+                SendAnimation gif = new SendAnimation();
+                gif.setAnimation(pageName);
+                gif.setChatId(update.getMessage().getChatId());
+                gif.setCaption("DOG!!");
+                try {
+                    execute(gif);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else if (updateHasText(update, "/cat")) {
+            String catjson = "";
+            try {
+                URL url = new URL("https://api.thecatapi.com/v1/images/search");
+                URLConnection yc = null;
+                yc = url.openConnection();
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(
+                                yc.getInputStream()));
+                String inputLine;
+
+                while ((inputLine = in.readLine()) != null) {
+                    System.out.println(inputLine);
+                    catjson = catjson + inputLine;
+                }
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            String unmunged = catjson.replaceAll("^\\[","").replaceAll("\\]$","");
+            JSONObject obj = new JSONObject(unmunged);
+
+            String pageName = obj.getString("url");
+            consoleLogger.info(pageName);
+            if (pageName.toLowerCase().endsWith(".jpg")||pageName.toLowerCase().endsWith(".jpeg")||pageName.toLowerCase().endsWith(".png")) {
+                SendPhoto ph = new SendPhoto();
+                ph.setPhoto(pageName);
+                ph.setChatId(update.getMessage().getChatId());
+                ph.setCaption("CAT!!");
+                try {
+                    execute(ph);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            }
         } else if (updateHasText(update, "Muta " + EmojiParser.parseToUnicode(":microphone:"))) {
             safeSendUpdate(update, m, "", "Usa questo comando nei gruppi per mutare le persone >:^)\n" +
                     "Devi essere amministratore per usarlo.\n" +
@@ -351,17 +453,18 @@ public class Schiavobot extends TelegramLongPollingBot {
                     "Se sei un amministratore, usa questo comando per DISTRUGGERE LA CHAT INTERA PER MOTIVI CHE NON DEVONO ESSERE SPECIFICATI (mutare tutti gli utenti di una chat)\n" +
                     "<b>Ripeto, è ancora un WIP!</b>\n" +
                     " Devo ancora imparare ad usare MongoDB e tutta quella roba bella");
-        } else if (updateHasText(update, "Contatta lo sviluppatore " + EmojiParser.parseToUnicode(":wink:"))){
-            ismessagingcreator = 1;
+        } else if (updateHasText(update, "Contatta lo sviluppatore " + EmojiParser.parseToUnicode(":wink:"))) {
+
             SendMessage message = InlineKeyboardBuilder.create(update.getMessage().getChatId())
                     .setText("Ora stai parlando con lo sviluppatore. Premi il bottone per annullare")
                     .row()
                     .button("Annulla", CALLBACK_BUTTON_UPDATE_BACK)
                     .endRow()
                     .build();
-            try{
+            try {
                 execute(message);
-            }catch(TelegramApiException e) {
+                ForwardToCreator fuouf = new ForwardToCreator();
+            } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
         } else if (updateHasText(update, "Revive chat " + EmojiParser.parseToUnicode(":sparkles:") + EmojiParser.parseToUnicode(":star:"))) {
@@ -405,7 +508,7 @@ public class Schiavobot extends TelegramLongPollingBot {
                     SendMessage message = InlineKeyboardBuilder.create(update.getMessage().getChatId())
                             .setText("Utente " + usertomute + " mutato per un'ora (⌐■-■)")
                             .row()
-                            .button("Annulla", CALLBACK_BUTTON_UPDATE_UNMUTE + "!" + usertomute)
+                            .button("Annulla", CALLBACK_BUTTON_UPDATE_UNMUTE + "!" + usertomute + ":" + update.getMessage().getFrom().getUserName())
                             .setChatId(update.getMessage().getChatId())
                             .endRow()
                             .build();
@@ -414,7 +517,7 @@ public class Schiavobot extends TelegramLongPollingBot {
                     SendMessage message = InlineKeyboardBuilder.create(update.getMessage().getChatId())
                             .setText("Utente " + usertomute + " mutato (⌐■-■)")
                             .row()
-                            .button("Annulla", CALLBACK_BUTTON_UPDATE_UNMUTE + ":" + usertomute)
+                            .button("Annulla", CALLBACK_BUTTON_UPDATE_UNMUTE + ":" + usertomute + ":" + update.getMessage().getFrom().getUserName())
                             .setChatId(update.getMessage().getChatId())
                             .endRow()
                             .build();
@@ -427,7 +530,8 @@ public class Schiavobot extends TelegramLongPollingBot {
         } else if (updateHasText(update, "Altro " + EmojiParser.parseToUnicode(":no_mouth:"))) {
             m.setParseMode("HTML");
             safeSendUpdate(update, m, "", "1. file_id: Quando mandi un file, sarà stampato il suo file_id (se non programmi, non credo ti serva, però è lì in caso contrario!)\n" +
-                    "2. Paypal: Se per qualche strano motivo volessi donarmi <b>solo ed esclusivamente abbondanti somme di denaro</b> (scherzo xD), puoi usuare il mio link paypal.me: paypal.me/gabosparkes");
+                    "2. Cani e gatti: Manda /dog per vedere una foro, un video o una gif di un cane e /cat per vedere una foto di un gatto" +
+                    "3. Paypal: Se per qualche strano motivo volessi donarmi <b>solo ed esclusivamente abbondanti somme di denaro</b> (scherzo xD), puoi usuare il mio link paypal.me: paypal.me/gabosparkes");
         } else if (update.hasMessage() && update.getMessage().getText().toLowerCase().equals("una parolaccia")) {
             DeleteMessage dmsg = new DeleteMessage(update.getMessage().getChatId(), update.getMessage().getMessageId());
             deleteMessage(update, dmsg, "");
@@ -527,7 +631,7 @@ public class Schiavobot extends TelegramLongPollingBot {
                 execute(k);
                 try {
 
-                    rowInline.add(new InlineKeyboardButton().setText("Annulla").setCallbackData(CALLBACK_BUTTON_UPDATE_UNBAN_CMD + ":" + userToBan));
+                    rowInline.add(new InlineKeyboardButton().setText("Annulla").setCallbackData(CALLBACK_BUTTON_UPDATE_UNBAN_CMD + ":" + userToBan + ":" + update.getMessage().getFrom().getUserName()));
                     rowsInline.add(rowInline);
                     markupInline.setKeyboard(rowsInline);
                     m.setChatId(update.getMessage().getChatId());
@@ -552,7 +656,6 @@ public class Schiavobot extends TelegramLongPollingBot {
             }
         }
     }
-
 
     private int getMessageId(Update update) {
         if (update.hasMessage()) {
@@ -692,12 +795,12 @@ public class Schiavobot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     }
+
     private User captureUserIds(Update update) {
         if (update.hasMessage()) {
             User from = update.getMessage().getFrom();
             return from;
-        }
-        else {
+        } else {
             User from = update.getCallbackQuery().getFrom();
             return from;
         }
