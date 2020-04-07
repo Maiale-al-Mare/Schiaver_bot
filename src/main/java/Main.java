@@ -16,6 +16,8 @@ public class Main {
 
         try {
             botsApi.registerBot(new Schiavobot());
+            botsApi.registerBot(new DogTron());
+            botsApi.registerBot(new Schiaver_bot2());
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
