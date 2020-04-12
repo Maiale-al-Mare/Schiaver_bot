@@ -4,53 +4,89 @@ import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
-import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatAdministrators;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.*;
+import org.telegram.telegrambots.meta.api.methods.updates.SetWebhook;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageMedia;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.*;
+import org.telegram.telegrambots.meta.api.objects.media.*;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ForceReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
 import java.io.*;
 import java.io.File;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
 import java.util.List;
+
 import static java.lang.StrictMath.toIntExact;
 
 public class Schiaver_bot2 extends TelegramLongPollingBot {
 
     Map request = new HashMap();
     Logger consoleLogger = LogManager.getLogger("console");
-    Collection<String> mat = new LinkedList<String>();
-    Collection<String> art = new LinkedList<String>();
-    Collection<String> eng = new LinkedList<String>();
-    Collection<String> ita = new LinkedList<String>();
-    Collection<String> tec = new LinkedList<String>();
-    Collection<String> sci = new LinkedList<String>();
-    Collection<String> ger = new LinkedList<String>();
-    Collection<String> spa = new LinkedList<String>();
-    Collection<String> geo = new LinkedList<String>();
-    Collection<String> his = new LinkedList<String>();
-    Collection<String> othr = new LinkedList<String>();
-    Collection<String> geom = new LinkedList<String>();
-    Collection<String> matname = new LinkedList<String>();
-    Collection<String> artname = new LinkedList<String>();
-    Collection<String> engname = new LinkedList<String>();
-    Collection<String> itaname = new LinkedList<String>();
-    Collection<String> tecname = new LinkedList<String>();
-    Collection<String> sciname = new LinkedList<String>();
-    Collection<String> gername = new LinkedList<String>();
-    Collection<String> spaname = new LinkedList<String>();
-    Collection<String> geoname = new LinkedList<String>();
-    Collection<String> hisname = new LinkedList<String>();
-    Collection<String> othrname = new LinkedList<String>();
-    Collection<String> geomname = new LinkedList<String>();
+    LinkedList<String> mat = new LinkedList<>();
+    LinkedList<String> art = new LinkedList<>();
+    Integer currentIndex = 0;
+    LinkedList<String> eng = new LinkedList<>();
+    LinkedList<String> ita = new LinkedList<>();
+    LinkedList<String> tec = new LinkedList<>();
+    LinkedList<String> sci = new LinkedList<>();
+    LinkedList<String> ger = new LinkedList<>();
+    LinkedList<String> spa = new LinkedList<>();
+    LinkedList<String> geo = new LinkedList<>();
+    LinkedList<String> his = new LinkedList<>();
+    LinkedList<String> rel = new LinkedList<>();
+    LinkedList<String> othr = new LinkedList<>();
+    LinkedList<String> geom = new LinkedList<>();
+    LinkedList<String> matname = new LinkedList<>();
+    LinkedList<String> relname = new LinkedList<>();
+    LinkedList<String> artname = new LinkedList<>();
+    LinkedList<String> engname = new LinkedList<>();
+    LinkedList<String> itaname = new LinkedList<>();
+    LinkedList<String> tecname = new LinkedList<>();
+    LinkedList<String> sciname = new LinkedList<>();
+    LinkedList<String> gername = new LinkedList<>();
+    LinkedList<String> spaname = new LinkedList<>();
+    LinkedList<String> geoname = new LinkedList<>();
+    LinkedList<String> hisname = new LinkedList<>();
+    LinkedList<String> othrname = new LinkedList<>();
+    LinkedList<String> geomname = new LinkedList<>();
+    private static final String CALLBACK_BUTTON_UPDATE_CANCEL = "cancel";
+    private static final String CALLBACK_BUTTON_UPDATE_ART_NEXT = "art_n";
+    private static final String CALLBACK_BUTTON_UPDATE_ENGLISH_NEXT = "eng_n";
+    private static final String CALLBACK_BUTTON_UPDATE_ITALIAN_NEXT = "ita_n";
+    private static final String CALLBACK_BUTTON_UPDATE_TECHNOLOGY_NEXT = "tec_n";
+    private static final String CALLBACK_BUTTON_UPDATE_MATHS_NEXT = "mat_n";
+    private static final String CALLBACK_BUTTON_UPDATE_RELIGION_NEXT = "rel_n";
+    private static final String CALLBACK_BUTTON_UPDATE_SCIENCE_NEXT = "sci_n";
+    private static final String CALLBACK_BUTTON_UPDATE_GERMAN_NEXT = "ger_n";
+    private static final String CALLBACK_BUTTON_UPDATE_SPANISH_NEXT = "spa_n";
+    private static final String CALLBACK_BUTTON_UPDATE_HISTORY_NEXT = "his_n";
+    private static final String CALLBACK_BUTTON_UPDATE_GEOGRAPHY_NEXT = "geo_n";
+    private static final String CALLBACK_BUTTON_UPDATE_OTHER_INFO_NEXT = "othr_n";
+    private static final String CALLBACK_BUTTON_UPDATE_GEOMETRY_NEXT = "geom_n";
+    private static final String CALLBACK_BUTTON_UPDATE_ART_PREVIOUS = "art_p";
+    private static final String CALLBACK_BUTTON_UPDATE_ENGLISH_PREVIOUS = "eng_p";
+    private static final String CALLBACK_BUTTON_UPDATE_ITALIAN_PREVIOUS = "ita_p";
+    private static final String CALLBACK_BUTTON_UPDATE_TECHNOLOGY_PREVIOUS = "tec_p";
+    private static final String CALLBACK_BUTTON_UPDATE_MATHS_PREVIOUS = "mat_p";
+    private static final String CALLBACK_BUTTON_UPDATE_RELIGION_PREVIOUS = "rel_p";
+    private static final String CALLBACK_BUTTON_UPDATE_SCIENCE_PREVIOUS = "sci_p";
+    private static final String CALLBACK_BUTTON_UPDATE_GERMAN_PREVIOUS = "ger_p";
+    private static final String CALLBACK_BUTTON_UPDATE_SPANISH_PREVIOUS = "spa_p";
+    private static final String CALLBACK_BUTTON_UPDATE_HISTORY_PREVIOUS = "his_p";
+    private static final String CALLBACK_BUTTON_UPDATE_GEOGRAPHY_PREVIOUS = "geo_p";
+    private static final String CALLBACK_BUTTON_UPDATE_OTHER_INFO_PREVIOUS = "othr_p";
+    private static final String CALLBACK_BUTTON_UPDATE_GEOMETRY_PREVIOUS = "geom_p";
     private static final String CALLBACK_BUTTON_UPDATE_MESSAGE_TEXT = "update_msg_text";
     private static final String CALLBACK_BUTTON_UPDATE_DAI_SCHERZO = "no_really";
     private static final String CALLBACK_BUTTON_UPDATE_THUMBSUP = "thumbsup";
@@ -60,6 +96,7 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
     private static final String CALLBACK_BUTTON_UPDATE_ENGLISH = "english";
     private static final String CALLBACK_BUTTON_UPDATE_ITALIAN = "italian";
     private static final String CALLBACK_BUTTON_UPDATE_TECHNOLOGY = "technology";
+    private static final String CALLBACK_BUTTON_UPDATE_RELIGION = "religion";
     private static final String CALLBACK_BUTTON_UPDATE_SCIENCE = "science";
     private static final String CALLBACK_BUTTON_UPDATE_GERMAN = "german";
     private static final String CALLBACK_BUTTON_UPDATE_SPANISH = "spanish";
@@ -67,6 +104,19 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
     private static final String CALLBACK_BUTTON_UPDATE_HISTORY = "history";
     private static final String CALLBACK_BUTTON_UPDATE_OTHER_INFO = "other_info";
     private static final String CALLBACK_BUTTON_UPDATE_GEOMETRY = "geometry";
+    private static final String CALLBACK_BUTTON_DELETE_MATHS = "maths";
+    private static final String CALLBACK_BUTTON_DELETE_ART = "art_d";
+    private static final String CALLBACK_BUTTON_DELETE_ENGLISH = "english_d";
+    private static final String CALLBACK_BUTTON_DELETE_ITALIAN = "italian_d";
+    private static final String CALLBACK_BUTTON_DELETE_TECHNOLOGY = "technology_d";
+    private static final String CALLBACK_BUTTON_DELETE_RELIGION = "religion_d";
+    private static final String CALLBACK_BUTTON_DELETE_SCIENCE = "science_d";
+    private static final String CALLBACK_BUTTON_DELETE_GERMAN = "german_d";
+    private static final String CALLBACK_BUTTON_DELETE_SPANISH = "spanish_d";
+    private static final String CALLBACK_BUTTON_DELETE_GEOGRAPHY = "geography_d";
+    private static final String CALLBACK_BUTTON_DELETE_HISTORY = "history_d";
+    private static final String CALLBACK_BUTTON_DELETE_OTHER_INFO = "other_info_d";
+    private static final String CALLBACK_BUTTON_DELETE_GEOMETRY = "geometry_d";
     private static final String CALLBACK_BUTTON_UPDATE_MATHS_UPLOAD = "maths_u";
     private static final String CALLBACK_BUTTON_UPDATE_ART_UPLOAD = "art_u";
     private static final String CALLBACK_BUTTON_UPDATE_ENGLISH_UPLOAD = "english_u";
@@ -74,6 +124,7 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
     private static final String CALLBACK_BUTTON_UPDATE_TECHNOLOGY_UPLOAD = "technology_u";
     private static final String CALLBACK_BUTTON_UPDATE_SCIENCE_UPLOAD = "science_u";
     private static final String CALLBACK_BUTTON_UPDATE_GERMAN_UPLOAD = "german_u";
+    private static final String CALLBACK_BUTTON_UPDATE_RELIGION_UPLOAD = "religion_u";
     private static final String CALLBACK_BUTTON_UPDATE_SPANISH_UPLOAD = "spanish_u";
     private static final String CALLBACK_BUTTON_UPDATE_GEOGRAPHY_UPLOAD = "geography_u";
     private static final String CALLBACK_BUTTON_UPDATE_HISTORY_UPLOAD = "history_u";
@@ -118,6 +169,11 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
             e.printStackTrace();
         }
         try {
+            new File("religion.ser").createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
             new File("science.ser").createNewFile();
         } catch (IOException e) {
             e.printStackTrace();
@@ -154,6 +210,11 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
         }
         try {
             new File("englishname.ser").createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            new File("religionname.ser").createNewFile();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -203,79 +264,289 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
             e.printStackTrace();
         }
         if (art.size() == 0) {
-            consoleLogger.debug("Loading map");
-            Fileid fileid = new Fileid();
-            art = fileid.readMapArt();
-            consoleLogger.debug("Loaded " + art.size());
+            try {
+
+                File file = new File("art.ser");
+                if (!(file.length() == 0)) {
+                    consoleLogger.debug("Loading map");
+                    Fileid fileid = new Fileid();
+                    art = fileid.readMapArt();
+                    consoleLogger.debug("Loaded " + art.size());
+                } else {
+                    System.out.println("File is empty");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         if (eng.size() == 0) {
-            consoleLogger.debug("Loading map");
-            Fileid fileid = new Fileid();
-            eng = fileid.readMapArt();
-            consoleLogger.debug("Loaded " + eng.size());
+            File file = new File("english.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                eng = fileid.readMapEnglish();
+                consoleLogger.debug("Loaded " + eng.size());
+            } else {
+                System.out.println("File is empty");
+            }
         }
         if (geo.size() == 0) {
-            consoleLogger.debug("Loading map");
-            Fileid fileid = new Fileid();
-            geo = fileid.readMapArt();
-            consoleLogger.debug("Loaded " + geo.size());
+            File file = new File("geography.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                geo = fileid.readMapGeography();
+                consoleLogger.debug("Loaded " + geo.size());
+            } else {
+                System.out.println("File is empty");
+            }
         }
         if (geom.size() == 0) {
-            consoleLogger.debug("Loading map");
-            Fileid fileid = new Fileid();
-            geom = fileid.readMapArt();
-            consoleLogger.debug("Loaded " + geom.size());
+            File file = new File("geometry.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                geom = fileid.readMapGeometry();
+                consoleLogger.debug("Loaded " + geom.size());
+            } else {
+                System.out.println("File is empty");
+            }
         }
         if (ger.size() == 0) {
-            consoleLogger.debug("Loading map");
-            Fileid fileid = new Fileid();
-            ger = fileid.readMapArt();
-            consoleLogger.debug("Loaded " + ger.size());
+            File file = new File("german.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                ger = fileid.readMapGerman();
+                consoleLogger.debug("Loaded " + ger.size());
+            } else {
+                System.out.println("Fild is empty");
+            }
         }
         if (his.size() == 0) {
-            consoleLogger.debug("Loading map");
-            Fileid fileid = new Fileid();
-            his = fileid.readMapArt();
-            consoleLogger.debug("Loaded " + his.size());
+            File file = new File("history.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                his = fileid.readMapHistory();
+                consoleLogger.debug("Loaded " + his.size());
+            } else {
+                System.out.println("File is empty");
+            }
         }
         if (ita.size() == 0) {
-            consoleLogger.debug("Loading map");
-            Fileid fileid = new Fileid();
-            ita = fileid.readMapArt();
-            consoleLogger.debug("Loaded " + ita.size());
+            File file = new File("italian.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                ita = fileid.readMapItalian();
+                consoleLogger.debug("Loaded " + ita.size());
+            } else {
+                System.out.println("File is empty");
+            }
+        }
+        if (rel.size() == 0) {
+            File file = new File("religion.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                rel = fileid.readMapReligion();
+                consoleLogger.debug("Loaded " + rel.size());
+            } else {
+                System.out.println("File is empty");
+            }
         }
         if (othr.size() == 0) {
-            consoleLogger.debug("Loading map");
-            Fileid fileid = new Fileid();
-            othr = fileid.readMapArt();
-            consoleLogger.debug("Loaded " + othr.size());
+            File file = new File("other.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                othr = fileid.readMapOther();
+                consoleLogger.debug("Loaded " + othr.size());
+            } else {
+                System.out.println("File is empty");
+            }
         }
         if (sci.size() == 0) {
-            consoleLogger.debug("Loading map");
-            Fileid fileid = new Fileid();
-            art = fileid.readMapArt();
-            consoleLogger.debug("Loaded " + sci.size());
+            File file = new File("science.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                sci = fileid.readMapScience();
+                consoleLogger.debug("Loaded " + sci.size());
+            } else {
+                System.out.println("File is empty");
+            }
         }
         if (spa.size() == 0) {
-            consoleLogger.debug("Loading map");
-            Fileid fileid = new Fileid();
-            art = fileid.readMapArt();
-            consoleLogger.debug("Loaded " + spa.size());
+            File file = new File("spanish.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                spa = fileid.readMapSpanish();
+                consoleLogger.debug("Loaded " + spa.size());
+            } else {
+                System.out.println("File is empty");
+            }
         }
         if (tec.size() == 0) {
+            File file = new File("technology.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                tec = fileid.readMapTechnology();
+                consoleLogger.debug("Loaded " + tec.size());
+            } else {
+                System.out.println("File is empty");
+            }
+        }
+        if (artname.size() == 0) {
+            File file = new File("artname.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                artname = fileid.readMapArtName();
+                consoleLogger.debug("Loaded " + artname.size());
+            } else {
+                System.out.println("File is empty");
+            }
+        }
+        if (engname.size() == 0) {
+            File file = new File("englishname.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                engname = fileid.readMapEnglishName();
+                consoleLogger.debug("Loaded " + engname.size());
+            } else {
+                System.out.println("File is empty");
+            }
+        }
+        if (geoname.size() == 0) {
             consoleLogger.debug("Loading map");
-            Fileid fileid = new Fileid();
-            tec = fileid.readMapArt();
-            consoleLogger.debug("Loaded " + tec.size());
+            File file = new File("geographyname.ser");
+            if (!(file.length() == 0)) {
+                Fileid fileid = new Fileid();
+                geoname = fileid.readMapGeographyName();
+                consoleLogger.debug("Loaded " + geoname.size());
+            } else {
+                System.out.println("File is empty");
+            }
+        }
+        if (geomname.size() == 0) {
+            File file = new File("geometryname.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                geomname = fileid.readMapGeometryName();
+                consoleLogger.debug("Loaded " + geomname.size());
+            } else {
+                System.out.println("File is empty");
+            }
+        }
+        if (gername.size() == 0) {
+            File file = new File("germanname.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                gername = fileid.readMapGermanName();
+                consoleLogger.debug("Loaded " + gername.size());
+            } else {
+                System.out.println("File is empty");
+            }
+        }
+        if (hisname.size() == 0) {
+            File file = new File("historyname.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                hisname = fileid.readMapHistoryName();
+                consoleLogger.debug("Loaded " + hisname.size());
+            } else {
+                System.out.println("File is empty");
+            }
+        }
+        if (itaname.size() == 0) {
+            File file = new File("italianname.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                itaname = fileid.readMapItalianName();
+                consoleLogger.debug("Loaded " + itaname.size());
+            } else {
+                System.out.println("File is empty");
+            }
+        }
+        if (relname.size() == 0) {
+            File file = new File("religionname.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                relname = fileid.readMapReligionName();
+                consoleLogger.debug("Loaded " + relname.size());
+            } else {
+                System.out.println("File is empty");
+            }
+        }
+        if (othrname.size() == 0) {
+            File file = new File("othername.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                othrname = fileid.readMapOther();
+                consoleLogger.debug("Loaded " + othrname.size());
+            } else {
+                System.out.println("File is empty");
+            }
+        }
+        if (sciname.size() == 0) {
+            File file = new File("sciencename.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                sciname = fileid.readMapScience();
+                consoleLogger.debug("Loaded " + sciname.size());
+            } else {
+                System.out.println("File is empty");
+            }
+        }
+        if (spaname.size() == 0) {
+            File file = new File("spanishname.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                spaname = fileid.readMapSpanish();
+                consoleLogger.debug("Loaded " + spaname.size());
+            } else {
+                System.out.println("File is empty");
+            }
+        }
+        if (tecname.size() == 0) {
+            File file = new File("technologyname.ser");
+            if (!(file.length() == 0)) {
+                consoleLogger.debug("Loading map");
+                Fileid fileid = new Fileid();
+                tecname = fileid.readMapTechnology();
+                consoleLogger.debug("Loaded " + tecname.size());
+            } else {
+                System.out.println("File is empty");
+            }
         }
         User from = captureUserIds(update);
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         List<InlineKeyboardButton> rowInline = new ArrayList<>();
+        GetChatAdministrators chatAdministrators = new GetChatAdministrators();
+        chatAdministrators.setChatId(chat_id(update));
         int message_id = getMessageId(update);
+        try {
+            System.out.println(userStatus(update));
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
         if (update.hasCallbackQuery() && !update.getCallbackQuery().getData().equals("") && update.getCallbackQuery().getInlineMessageId() == null) {
-            update.getCallbackQuery().getMessage().getMessageId();
             String call_data = update.getCallbackQuery().getData();
+            System.out.println(call_data);
             System.out.println("Callback query found");
             long chat_id = update.getCallbackQuery().getMessage().getChatId();
             if (call_data.equals(CALLBACK_BUTTON_UPDATE_MESSAGE_TEXT)) {
@@ -297,6 +568,30 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
                 }
             }
 
+            if (call_data.equals(CALLBACK_BUTTON_UPDATE_ART_NEXT)) {
+                try {
+                    getNext(update, art, currentIndex, "art");
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (call_data.equals(CALLBACK_BUTTON_UPDATE_ART_PREVIOUS)) {
+                getPrevious(update, art, "art");
+            }
+
+            if (call_data.equals(CALLBACK_BUTTON_UPDATE_CANCEL)) {
+                DeleteMessage d = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
+                deleteMessage(update, d, "");
+            }
+
+            if (call_data.equals(CALLBACK_BUTTON_UPDATE_ART)) {
+                try {
+                    getResources(update, art, "art");
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            }
             if (call_data.equals(CALLBACK_BUTTON_UPDATE_FROWN_FACE)) {
                 rowInline.add(new InlineKeyboardButton().setText("No dai scherzo").setCallbackData(CALLBACK_BUTTON_UPDATE_DAI_SCHERZO));
                 rowsInline.add(rowInline);
@@ -339,15 +634,7 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
                     e.printStackTrace();
                 }
             }
-            if (call_data.equals(CALLBACK_BUTTON_UPDATE_GEOMETRY)){
-                SendDocument d = new SendDocument();
-                try {
-                    execute(d);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
-                }
 
-            }
             if (call_data.contains(CALLBACK_BUTTON_UPDATE_ART_UPLOAD)) {
                 ForceReplyKeyboard f = new ForceReplyKeyboard();
                 DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
@@ -367,6 +654,162 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
+            }
+
+            if (call_data.equals(CALLBACK_BUTTON_DELETE_ART)) {
+                SendMessage m = new SendMessage();
+                Fileid fileid = new Fileid();
+                art.clear();
+                fileid.writeMapArt(art);
+                artname.clear();
+                fileid.writeMapArtName(artname);
+                DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
+                deleteMessage(update, dmsg, "");
+                safeSendUpdate(update, m, "", "Tutti i file per arte sono stati cancellati", "");
+            }
+
+            if (call_data.equals(CALLBACK_BUTTON_DELETE_OTHER_INFO)) {
+                SendMessage m = new SendMessage();
+                Fileid fileid = new Fileid();
+                othr.clear();
+                fileid.writeMapArt(othr);
+                othrname.clear();
+                fileid.writeMapArtName(othrname);
+                DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
+                deleteMessage(update, dmsg, "");
+                safeSendUpdate(update, m, "", "Tutti i file aggiuntivi sono stati cancellati", "");
+            }
+
+            if (call_data.equals(CALLBACK_BUTTON_DELETE_ENGLISH)) {
+                SendMessage m = new SendMessage();
+                Fileid fileid = new Fileid();
+                eng.clear();
+                fileid.writeMapArt(eng);
+                engname.clear();
+                fileid.writeMapArtName(engname);
+                DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
+                deleteMessage(update, dmsg, "");
+                safeSendUpdate(update, m, "", "Tutti i file per inglese sono stati cancellati", "");
+            }
+
+            if (call_data.equals(CALLBACK_BUTTON_DELETE_GEOGRAPHY)) {
+                SendMessage m = new SendMessage();
+                Fileid fileid = new Fileid();
+                geo.clear();
+                fileid.writeMapArt(geo);
+                geoname.clear();
+                fileid.writeMapArtName(geoname);
+                DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
+                deleteMessage(update, dmsg, "");
+                safeSendUpdate(update, m, "", "Tutti i file per geografia sono stati cancellati", "");
+            }
+
+            if (call_data.equals(CALLBACK_BUTTON_DELETE_GEOMETRY)) {
+                SendMessage m = new SendMessage();
+                Fileid fileid = new Fileid();
+                geom.clear();
+                fileid.writeMapArt(geom);
+                geomname.clear();
+                fileid.writeMapArtName(geomname);
+                DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
+                deleteMessage(update, dmsg, "");
+                safeSendUpdate(update, m, "", "Tutti i file per geometria sono stati cancellati", "");
+            }
+
+            if (call_data.equals(CALLBACK_BUTTON_DELETE_GERMAN)) {
+                SendMessage m = new SendMessage();
+                Fileid fileid = new Fileid();
+                ger.clear();
+                fileid.writeMapArt(ger);
+                gername.clear();
+                fileid.writeMapArtName(gername);
+                DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
+                deleteMessage(update, dmsg, "");
+                safeSendUpdate(update, m, "", "Tutti i file per tedesco sono stati cancellati", "");
+            }
+
+            if (call_data.equals(CALLBACK_BUTTON_DELETE_HISTORY)) {
+                SendMessage m = new SendMessage();
+                Fileid fileid = new Fileid();
+                his.clear();
+                fileid.writeMapArt(his);
+                hisname.clear();
+                fileid.writeMapArtName(hisname);
+                DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
+                deleteMessage(update, dmsg, "");
+                safeSendUpdate(update, m, "", "Tutti i file per storia sono stati cancellati", "");
+            }
+
+            if (call_data.equals(CALLBACK_BUTTON_DELETE_ITALIAN)) {
+                SendMessage m = new SendMessage();
+                Fileid fileid = new Fileid();
+                ita.clear();
+                fileid.writeMapArt(ita);
+                itaname.clear();
+                fileid.writeMapArtName(itaname);
+                DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
+                deleteMessage(update, dmsg, "");
+                safeSendUpdate(update, m, "", "Tutti i file per italiano sono stati cancellati", "");
+            }
+
+            if (call_data.equals(CALLBACK_BUTTON_DELETE_MATHS)) {
+                SendMessage m = new SendMessage();
+                Fileid fileid = new Fileid();
+                mat.clear();
+                fileid.writeMapArt(mat);
+                matname.clear();
+                fileid.writeMapArtName(matname);
+                DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
+                deleteMessage(update, dmsg, "");
+                safeSendUpdate(update, m, "", "Tutti i file per matematica sono stati cancellati", "");
+            }
+
+            if (call_data.equals(CALLBACK_BUTTON_DELETE_RELIGION)) {
+                SendMessage m = new SendMessage();
+                Fileid fileid = new Fileid();
+                rel.clear();
+                fileid.writeMapArt(rel);
+                relname.clear();
+                fileid.writeMapArtName(relname);
+                DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
+                deleteMessage(update, dmsg, "");
+                safeSendUpdate(update, m, "", "Tutti i file per religione sono stati cancellati", "");
+            }
+
+            if (call_data.equals(CALLBACK_BUTTON_DELETE_SCIENCE)) {
+                SendMessage m = new SendMessage();
+                Fileid fileid = new Fileid();
+                sci.clear();
+                fileid.writeMapArt(sci);
+                sciname.clear();
+                fileid.writeMapArtName(sciname);
+                DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
+                deleteMessage(update, dmsg, "");
+                safeSendUpdate(update, m, "", "Tutti i file per scienze sono stati cancellati", "");
+            }
+
+            if (call_data.equals(CALLBACK_BUTTON_DELETE_SPANISH)) {
+                SendMessage m = new SendMessage();
+                Fileid fileid = new Fileid();
+                spa.clear();
+                fileid.writeMapArt(spa);
+                spaname.clear();
+                fileid.writeMapArtName(spaname);
+                DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
+                deleteMessage(update, dmsg, "");
+                safeSendUpdate(update, m, "", "Tutti i file per spagnolo sono stati cancellati", "");
+            }
+
+            if (call_data.equals(CALLBACK_BUTTON_DELETE_TECHNOLOGY)) {
+                SendMessage m = new SendMessage();
+                Fileid fileid = new Fileid();
+                tec.clear();
+                fileid.writeMapArt(tec);
+                tecname.clear();
+                fileid.writeMapArtName(tecname);
+                DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
+                deleteMessage(update, dmsg, "");
+                safeSendUpdate(update, m, "", "Tutti i file per arte sono stati cancellati", "");
             }
 
             if (call_data.contains(CALLBACK_BUTTON_UPDATE_ENGLISH_UPLOAD)) {
@@ -449,6 +892,26 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
                     e.printStackTrace();
                 }
             }
+            if (call_data.contains(CALLBACK_BUTTON_UPDATE_RELIGION_UPLOAD)) {
+                ForceReplyKeyboard f = new ForceReplyKeyboard();
+                DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
+                deleteMessage(update, dmsg, "");
+                SendMessage m = new SendMessage();
+                f.setSelective(true);
+                m.setReplyMarkup(f);
+                m.setChatId(update.getCallbackQuery().getMessage().getChatId());
+                if (from.getUserName() != null) {
+                    m.setText("@" + from.getUserName() + ", rispondi con il materiale di religione da caricare");
+                } else {
+                    m.setParseMode("Markdown");
+                    m.setText(("[" + from.getFirstName() + "](tg://user?id=" + from.getId() + "), rispondi con il materiale di religione da caricare"));
+                }
+                try {
+                    execute(m);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            }
             if (call_data.contains(CALLBACK_BUTTON_UPDATE_ITALIAN_UPLOAD)) {
                 ForceReplyKeyboard f = new ForceReplyKeyboard();
                 DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
@@ -489,6 +952,7 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
                     e.printStackTrace();
                 }
             }
+
             if (call_data.contains(CALLBACK_BUTTON_UPDATE_OTHER_INFO_UPLOAD)) {
                 ForceReplyKeyboard f = new ForceReplyKeyboard();
                 DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
@@ -501,7 +965,7 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
                     m.setText("@" + from.getUserName() + ", rispondi con il materiale aggiuntivo da caricare");
                 } else {
                     m.setParseMode("Markdown");
-                    m.setText(("[" + from.getFirstName() + "](tg://user?id=" + from.getId() + "), rispondi con il materiale miscellaneo da caricare"));
+                    m.setText(("[" + from.getFirstName() + "](tg://user?id=" + from.getId() + "), rispondi con il materiale aggiuntivo da caricare"));
                 }
                 try {
                     execute(m);
@@ -708,9 +1172,41 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
                     e.printStackTrace();
                 }
             }
+        } else if (updateHasText(update, "/dice") || updateHasText(update, "/dice@schiavoduepuntozerorobot")) {
+            DeleteMessage dmsg = new DeleteMessage(update.getMessage().getChatId(), update.getMessage().getMessageId());
+            SendDice dice = new SendDice()
+                    .setChatId(chat_id(update));
+            try {
+                execute(dice);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
+            deleteMessage(update, dmsg, "");
+        } else if (updateIsReplyHasText(update, "/bandice") || updateIsReplyHasText(update, "/bandice@schiavoduepuntozerorobot")) {
+            DeleteMessage dmsg = new DeleteMessage(update.getMessage().getChatId(), update.getMessage().getMessageId());
+            SendSticker s = new SendSticker();
+            s.setReplyToMessageId(update.getMessage().getReplyToMessage().getMessageId());
+            safeSendUpdate(update, s, "", "CAACAgQAAxkBAAIG4l6MeFZqDOTaWAzeo6U6iBfr9bMhAAI_AAPI-uwTlXsuO2DmcrQYBA");
+            deleteMessage(update, dmsg, "");
+        } else if (updateHasText(update, "/bandice") || updateHasText(update, "/bandice@schiavoduepuntozerorobot")) {
+            DeleteMessage dmsg = new DeleteMessage(update.getMessage().getChatId(), update.getMessage().getMessageId());
+            SendSticker s = new SendSticker();
+            safeSendUpdate(update, s, "", "CAACAgQAAxkBAAIG4l6MeFZqDOTaWAzeo6U6iBfr9bMhAAI_AAPI-uwTlXsuO2DmcrQYBA");
+            deleteMessage(update, dmsg, "");
+        } else if (updateIsReplyHasText(update, "/weirddice") || updateIsReplyHasText(update, "/weirddice@schiavoduepuntozerorobot")) {
+            DeleteMessage dmsg = new DeleteMessage(update.getMessage().getChatId(), update.getMessage().getMessageId());
+            SendSticker s = new SendSticker();
+            s.setReplyToMessageId(update.getMessage().getReplyToMessage().getMessageId());
+            safeSendUpdate(update, s, "", "CAACAgQAAxkBAAIG416MeJGajFOyTLvNXVw_g5IJkjL-AAJAAAPI-uwTAAFLxlIqCqyuGAQ");
+            deleteMessage(update, dmsg, "");
+        } else if (updateHasText(update, "/weirddice") || updateHasText(update, "/weirddice@schiavoduepuntozerorobot")) {
+            DeleteMessage dmsg = new DeleteMessage(update.getMessage().getChatId(), update.getMessage().getMessageId());
+            SendSticker s = new SendSticker();
+            safeSendUpdate(update, s, "", "CAACAgQAAxkBAAIG416MeJGajFOyTLvNXVw_g5IJkjL-AAJAAAPI-uwTAAFLxlIqCqyuGAQ");
+            deleteMessage(update, dmsg, "");
         } else if (updateHasText(update, "/add") || updateHasText(update, "/add@schiavoduepuntozerorobot")) {
             SendMessage m = InlineKeyboardBuilder.create(update.getMessage().getChatId())
-                    .setText("Di quale materia vuoi aggiungere materiale?")
+                    .setText("Di quale materia vuoi aggiungere materiale? (Nessun limite di grandezza!)")
                     .row()
                     .button("Matematica", CALLBACK_BUTTON_UPDATE_MATHS_UPLOAD)
                     .button("Arte", CALLBACK_BUTTON_UPDATE_ART_UPLOAD)
@@ -733,6 +1229,9 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
                     .endRow()
                     .row()
                     .button("Storia", CALLBACK_BUTTON_UPDATE_HISTORY_UPLOAD)
+                    .button("Religione", CALLBACK_BUTTON_UPDATE_RELIGION_UPLOAD)
+                    .endRow()
+                    .row()
                     .button("Altro", CALLBACK_BUTTON_UPDATE_OTHER_INFO_UPLOAD)
                     .endRow()
                     .build();
@@ -742,254 +1241,69 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
                 e.printStackTrace();
             }
         } else if (updateIsReplyHasText(update, "rispondi con il materiale di arte")) {
-            SendMessage m = new SendMessage();
-            if (update.getMessage().hasDocument()||update.getMessage().hasPhoto()||update.getMessage().hasVideo()||update.getMessage().hasAudio()){
-                Fileid fileid = new Fileid();
-                System.out.println(art);
-                if (update.getMessage().hasDocument()) {
-                    if (!listContains(artname, update.getMessage().getDocument().getFileUniqueId())) {
-                        System.out.println("file_unique_id: " + update.getMessage().getDocument().getFileUniqueId());
-                        safeSendUpdate(update, m, "", "Sto salvando il file. Questa operazione dovrebbe impiregare meno di un secondo...", "");
-                        artname.add(update.getMessage().getDocument().getFileUniqueId());
-                        art.add(update.getMessage().getDocument().getFileId());
-                        safeSendUpdate(update, m, "", "Il file è stato salvato", "");
-                        fileid.writeMapArt(art);
-                        fileid.writeMapArtName(artname);
-                    } else {
-                        safeSendUpdate(update, m, "", "Il materiale è già stato salvato!", "");
-                    }
-                } else if (update.getMessage().hasVideo()) {
-                    if (!listContains(artname, update.getMessage().getVideo().getFileUniqueId())) {
-                        safeSendUpdate(update, m, "", "Sto salvando il file. Questa operazione dovrebbe impiregare meno di un secondo...", "");
-                        artname.add(update.getMessage().getVideo().getFileUniqueId());
-                        art.add(update.getMessage().getVideo().getFileId());
-                        safeSendUpdate(update, m, "", "Il file è stato salvato", "");
-                        fileid.writeMapArt(art);
-                        fileid.writeMapArtName(artname);
-                    } else {
-                        safeSendUpdate(update, m, "", "Il materiale è già stato salvato!", "");
-                    }
-                } else if (update.getMessage().hasPhoto()) {
-                    ArrayList<PhotoSize> photos = (ArrayList<PhotoSize>) update.getMessage().getPhoto();
-                    String photofile_id = photos.stream()
-                            .sorted(Comparator.comparing(PhotoSize::getFileSize).reversed())
-                            .findFirst()
-                            .orElse(null).getFileId();
-                    String photofile_unique_id = photos.stream()
-                            .sorted(Comparator.comparing(PhotoSize::getFileSize).reversed())
-                            .findFirst()
-                            .orElse(null).getFileUniqueId();
-                    System.out.println(photofile_id);
-                    if (!listContains(artname, photofile_unique_id)) {
-                        safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione dovrebbe impiregare meno di un secondo...", "");
-                        art.add(photofile_id);
-                        artname.add(photofile_unique_id);
-                        safeSendUpdate(update, m, "", "Il file è stato salvato", "");
-                        fileid.writeMapArt(art);
-                    } else {
-                        safeSendUpdate(update, m, "", "Il materiale è già stato salvato!", "");
-                    }
-                } else if (update.getMessage().hasAudio()){
-                    if (!art.contains(update.getMessage().getAudio().getFileUniqueId())) {
-                        safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione dovrebbe impiregare meno di un secondo...", "");
-                        art.add(update.getMessage().getAudio().getFileId());
-                        artname.add(update.getMessage().getAudio().getFileUniqueId());
-                        safeSendUpdate(update, m, "", "Il file è stato salvato", "");
-                        fileid.writeMapArt(art);
-                    } else {
-                        safeSendUpdate(update, m, "", "Il materiale è già stato salvato!", "");
-                    }
-                }
-            } else {
-                safeSendUpdate(update, m, "", "Questo tipo di contenuto non può essere salvato. Per favore manda un file generico (,pdf, .txt, .zip), un foto, un file di audio o un video", "");
-            }
+            saveMaterial(update, art, artname, "art");
         } else if (updateIsReplyHasText(update, "rispondi con il materiale di inglese")) {
-            SendMessage m = new SendMessage();
-            if (update.getMessage().hasDocument()||update.getMessage().hasPhoto()||update.getMessage().hasVideo()||update.getMessage().hasAudio()){
-                Fileid fileid = new Fileid();
-                System.out.println(eng);
-                if (update.getMessage().hasDocument()) {
-                    if (!listContains(engname, update.getMessage().getDocument().getFileUniqueId())) {
-                        System.out.println("file_unique_id: " + update.getMessage().getDocument().getFileUniqueId());
-                        safeSendUpdate(update, m, "", "Sto salvando il file. Questa operazione dovrebbe impiregare meno di un secondo...", "");
-                        engname.add(update.getMessage().getDocument().getFileUniqueId());
-                        eng.add(update.getMessage().getDocument().getFileId());
-                        safeSendUpdate(update, m, "", "Il file è stato salvato", "");
-                        fileid.writeMapEnglish(eng);
-                        fileid.writeMapEnglishName(engname);
-                    } else {
-                        safeSendUpdate(update, m, "", "Il materiale è già stato salvato!", "");
-                    }
-                } else if (update.getMessage().hasVideo()) {
-                    if (!listContains(engname, update.getMessage().getVideo().getFileUniqueId())) {
-                        safeSendUpdate(update, m, "", "Sto salvando il file. Questa operazione dovrebbe impiregare meno di un secondo...", "");
-                        engname.add(update.getMessage().getVideo().getFileUniqueId());
-                        eng.add(update.getMessage().getVideo().getFileId());
-                        safeSendUpdate(update, m, "", "Il file è stato salvato", "");
-                        fileid.writeMapEnglish(eng);
-                        fileid.writeMapEnglishName(engname);
-                    } else {
-                        safeSendUpdate(update, m, "", "Il materiale è già stato salvato!", "");
-                    }
-                } else if (update.getMessage().hasPhoto()) {
-                    ArrayList<PhotoSize> photos = (ArrayList<PhotoSize>) update.getMessage().getPhoto();
-                    String photofile_id = photos.stream()
-                            .sorted(Comparator.comparing(PhotoSize::getFileSize).reversed())
-                            .findFirst()
-                            .orElse(null).getFileId();
-                    String photofile_unique_id = photos.stream()
-                            .sorted(Comparator.comparing(PhotoSize::getFileSize).reversed())
-                            .findFirst()
-                            .orElse(null).getFileUniqueId();
-                    System.out.println(photofile_id);
-                    if (!listContains(engname, photofile_unique_id)) {
-                        safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione dovrebbe impiregare meno di un secondo...", "");
-                        eng.add(photofile_id);
-                        engname.add(photofile_unique_id);
-                        safeSendUpdate(update, m, "", "Il file è stato salvato", "");
-                        fileid.writeMapEnglish(eng);
-                        fileid.writeMapEnglishName(engname);
-                    } else {
-                        safeSendUpdate(update, m, "", "Il materiale è già stato salvato!", "");
-                    }
-                } else if (update.getMessage().hasAudio()){
-                    if (!listContains(engname, update.getMessage().getAudio().getFileUniqueId())) {
-                        safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione dovrebbe impiregare meno di un secondo...", "");
-                        eng.add(update.getMessage().getAudio().getFileId());
-                        engname.add(update.getMessage().getAudio().getFileUniqueId());
-                        safeSendUpdate(update, m, "", "Il file è stato salvato", "");
-                        fileid.writeMapEnglish(eng);
-                        fileid.writeMapEnglishName(engname);
-                    } else {
-                        safeSendUpdate(update, m, "", "Il materiale è già stato salvato!", "");
-                    }
-                }
-            } else {
-                safeSendUpdate(update, m, "", "Questo tipo di contenuto non può essere salvato. Per favore manda un file generico (,pdf, .txt, .zip), un foto, un file di audio o un video", "");
-            }
+            saveMaterial(update, eng, engname, "eng");
         } else if (updateIsReplyHasText(update, "rispondi con il materiale di geografia")) {
-            GetFile gfile = new GetFile();
-            SendMessage m = new SendMessage();
-            safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione potrebbe impiegare un secondo, sii paziente...", "");
-
-            System.out.println("Successfully downloaded file");
-            safeSendUpdate(update, m, "", "Il materiale è stato salvato", "");
+            saveMaterial(update, geo, geoname, "geo");
         } else if (updateIsReplyHasText(update, "rispondi con il materiale di storia")) {
-            GetFile gfile = new GetFile();
-            SendMessage m = new SendMessage();
-            safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione potrebbe impiegare un secondo, sii paziente...", "");
-
-            System.out.println("Successfully downloaded file");
-            safeSendUpdate(update, m, "", "Il materiale è stato salvato", "");
+            saveMaterial(update, his, hisname, "his");
         } else if (updateIsReplyHasText(update, "rispondi con il materiale di geometria")) {
-            GetFile gfile = new GetFile();
-            SendMessage m = new SendMessage();
-            safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione potrebbe impiegare un secondo, sii paziente...", "");
-
-            System.out.println("Successfully downloaded file");
-            safeSendUpdate(update, m, "", "Il materiale è stato salvato", "");
+            saveMaterial(update, geom, geomname, "geom");
         } else if (updateHasText(update, "/howtoclassroom") || updateHasText(update, "/howtoclassroom@schiavoduepuntozerorobot")) {
 
         } else if (updateIsReplyHasText(update, "rispondi con il materiale di italiano")) {
-            GetFile gfile = new GetFile();
-            SendMessage m = new SendMessage();
-            safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione potrebbe impiegare un secondo, sii paziente...", "");
-
-            System.out.println("Successfully downloaded file");
-            safeSendUpdate(update, m, "", "Il materiale è stato salvato", "");
+            saveMaterial(update, ita, itaname, "ita");
         } else if (updateIsReplyHasText(update, "rispondi con il materiale di matematica")) {
-            GetFile gfile = new GetFile();
-            SendMessage m = new SendMessage();
-            safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione potrebbe impiegare un secondo, sii paziente...", "");
-
-            System.out.println("Successfully downloaded file");
-            safeSendUpdate(update, m, "", "Il materiale è stato salvato", "");
-        } else if (updateIsReplyHasText(update, "rispondi con il materiale in più")) {
-            GetFile gfile = new GetFile();
-            SendMessage m = new SendMessage();
-            safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione potrebbe impiegare un secondo, sii paziente...", "");
-
-            System.out.println("Successfully downloaded file");
-            safeSendUpdate(update, m, "", "Il materiale è stato salvato", "");
+            saveMaterial(update, mat, matname, "mat");
+        } else if (updateIsReplyHasText(update, "rispondi con il materiale aggiuntivo")) {
+            saveMaterial(update, othr, othrname, "othr");
         } else if (updateIsReplyHasText(update, "rispondi con il materiale di scienze")) {
-            GetFile gfile = new GetFile();
-            SendMessage m = new SendMessage();
-            safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione potrebbe impiegare un secondo, sii paziente...", "");
-
-            System.out.println("Successfully downloaded file");
-            safeSendUpdate(update, m, "", "Il materiale è stato salvato", "");
+            saveMaterial(update, sci, sciname, "sci");
         } else if (updateIsReplyHasText(update, "rispondi con il materiale di tedesco")) {
-            GetFile gfile = new GetFile();
-            SendMessage m = new SendMessage();
-            safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione potrebbe impiegare un secondo, sii paziente...", "");
-
-            System.out.println("Successfully downloaded file");
-            safeSendUpdate(update, m, "", "Il materiale è stato salvato", "");
+            saveMaterial(update, ger, gername, "ger");
         } else if (updateIsReplyHasText(update, "rispondi con il materiale di spagnolo")) {
-            GetFile gfile = new GetFile();
-            SendMessage m = new SendMessage();
-            safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione potrebbe impiegare un secondo, sii paziente...", "");
-
-            System.out.println("Successfully downloaded file");
-            safeSendUpdate(update, m, "", "Il materiale è stato salvato", "");
+            saveMaterial(update, spa, spaname, "spa");
         } else if (updateIsReplyHasText(update, "rispondi con il materiale di tecnica")) {
-            GetFile gfile = new GetFile();
-            SendMessage m = new SendMessage();
-            safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione potrebbe impiegare un secondo, sii paziente...", "");
-            System.out.println("Successfully downloaded file");
-            safeSendUpdate(update, m, "", "Il materiale è stato salvato", "");
+            saveMaterial(update, tec, tecname, "tec");
+        } else if (updateIsReplyHasText(update, "rispondi con il materiale di religione")) {
+            saveMaterial(update, rel, relname, "rel");
         } else if (updateHasText(update, "/clear") || updateHasText(update, "/clear@schiavoduepuntozerorobot")) {
-            SendMessage m = new SendMessage();
-            Fileid fileid = new Fileid();
-            art.clear();
-            fileid.writeMapArt(art);
-            tec.clear();
-            fileid.writeMapArt(tec);
-            ger.clear();
-            fileid.writeMapArt(ger);
-            geo.clear();
-            fileid.writeMapArt(geo);
-            geom.clear();
-            fileid.writeMapArt(geom);
-            mat.clear();
-            fileid.writeMapArt(mat);
-            ita.clear();
-            fileid.writeMapArt(ita);
-            eng.clear();
-            fileid.writeMapArt(eng);
-            his.clear();
-            fileid.writeMapArt(his);
-            sci.clear();
-            fileid.writeMapArt(sci);
-            othr.clear();
-            fileid.writeMapArt(othr);
-            spa.clear();
-            fileid.writeMapArt(spa);
-            artname.clear();
-            fileid.writeMapArt(art);
-            tecname.clear();
-            fileid.writeMapArt(tec);
-            gername.clear();
-            fileid.writeMapArt(ger);
-            geoname.clear();
-            fileid.writeMapArt(geo);
-            geomname.clear();
-            fileid.writeMapArt(geom);
-            matname.clear();
-            fileid.writeMapArt(mat);
-            itaname.clear();
-            fileid.writeMapArt(ita);
-            engname.clear();
-            fileid.writeMapArt(eng);
-            hisname.clear();
-            fileid.writeMapArt(his);
-            sciname.clear();
-            fileid.writeMapArt(sci);
-            othrname.clear();
-            fileid.writeMapArt(othr);
-            spaname.clear();
-            fileid.writeMapArt(spa);
-            safeSendUpdate(update, m, "", "Tutti i file sono stati cancellati", "");
+            SendMessage m = InlineKeyboardBuilder.create(update.getMessage().getChatId())
+                    .setText("Di quale materia devi cancellare i file?")
+                    .row()
+                    .button("Matematica", CALLBACK_BUTTON_DELETE_MATHS)
+                    .button("Arte", CALLBACK_BUTTON_DELETE_ART)
+                    .endRow()
+                    .row()
+                    .button("Inglese", CALLBACK_BUTTON_DELETE_ENGLISH)
+                    .button("Italiano", CALLBACK_BUTTON_DELETE_ITALIAN)
+                    .endRow()
+                    .row()
+                    .button("Tecnica", CALLBACK_BUTTON_DELETE_TECHNOLOGY)
+                    .button("Scienze", CALLBACK_BUTTON_DELETE_SCIENCE)
+                    .endRow()
+                    .row()
+                    .button("Tedesco", CALLBACK_BUTTON_DELETE_GERMAN)
+                    .button("Spagnolo", CALLBACK_BUTTON_DELETE_SPANISH)
+                    .endRow()
+                    .row()
+                    .button("Geografia", CALLBACK_BUTTON_DELETE_GEOGRAPHY)
+                    .button("Geometria", CALLBACK_BUTTON_DELETE_GEOMETRY)
+                    .endRow()
+                    .row()
+                    .button("Storia", CALLBACK_BUTTON_DELETE_HISTORY)
+                    .button("Religione", CALLBACK_BUTTON_DELETE_RELIGION)
+                    .endRow()
+                    .row()
+                    .button("Altro", CALLBACK_BUTTON_DELETE_OTHER_INFO)
+                    .endRow()
+                    .build();
+            try {
+                execute(m);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
         } else if (updateHasText(update, "/urgenthelp@schiavoduepuntozerorobot") || updateHasText(update, "Urgenteee!") || updateHasText(update, "/urgenthelp")) {
             request.put(update.getMessage().getFrom().getFirstName(), message_id);
             SendMessage m = new SendMessage();
@@ -998,7 +1312,7 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
             f.setSelective(true);
             m.setReplyMarkup(f);
             safeSendUpdate(update, m, "", "Ok. Ora rispondi a questo messaggio con la tua richiesta urgente", "");
-        } else if (update.getMessage().isReply() && update.getMessage().getReplyToMessage().getText().equals("Ok. Ora rispondi a questo messaggio con la tua richiesta urgente")) {
+        } else if (updateIsReplyHasText(update, "Ok. Ora rispondi a questo messaggio con la tua richiesta urgente")) {
             SendMessage m = new SendMessage();
             java.util.Date time = new java.util.Date((long) update.getMessage().getDate() * 1000);
             safeSendUpdate(update, m, "", update.getMessage().getFrom().getFirstName() + "@" + time + ": " + update.getMessage().getText(), "-448643200L");
@@ -1011,7 +1325,7 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
             String[] command = update.getMessage().getReplyToMessage().getText().split("@");
             safeSendUpdate(update, m, "", "Dimmi la risposta alla richiesta di " + command[0].replace(" ", ""), "-448643200L");
 
-        } else if (update.getMessage().isReply() && update.getMessage().getReplyToMessage().getText().contains("Dimmi la risposta alla richiesta di")) {
+        } else if (updateIsReplyHasText(update, "Dimmi la risposta alla richiesta di")) {
             SendMessage m = new SendMessage();
             //m.setReplyToMessageId(request.get(update.getMessage().getReplyToMessage().getText().replace("Dimmi la risposta alla richiesta di ", "")));
             m.setReplyToMessageId((Integer) request.get(update.getMessage().getReplyToMessage().getText().replace("Dimmi la risposta alla richiesta di ", "")));
@@ -1026,9 +1340,9 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
-        } else if (updateHasText(update, "Compiti" + EmojiParser.parseToUnicode(":pencil:")) || updateHasText(update, "/compiti@schiavoduepuntozerorobot") || updateHasText(update, "/compiti")) {
+        } else if (updateHasText(update, "Materiale" + EmojiParser.parseToUnicode(":pencil:")) || updateHasText(update, "/material@schiavoduepuntozerorobot") || updateHasText(update, "/material")) {
             SendMessage m = InlineKeyboardBuilder.create(update.getMessage().getChatId())
-                    .setText("Quali compiti vuoi?")
+                    .setText("Che materiale ti serve?")
                     .row()
                     .button("Matematica", CALLBACK_BUTTON_UPDATE_MATHS)
                     .button("Arte", CALLBACK_BUTTON_UPDATE_ART)
@@ -1051,6 +1365,9 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
                     .endRow()
                     .row()
                     .button("Storia", CALLBACK_BUTTON_UPDATE_HISTORY)
+                    .button("Religione", CALLBACK_BUTTON_UPDATE_RELIGION)
+                    .endRow()
+                    .row()
                     .button("Altro", CALLBACK_BUTTON_UPDATE_OTHER_INFO)
                     .endRow()
                     .build();
@@ -1071,7 +1388,7 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
             keyboard.add(row);
             row = new KeyboardRow();
             row.add("Meet");
-            row.add("Compiti" + EmojiParser.parseToUnicode(":pencil:"));
+            row.add("Materiale" + EmojiParser.parseToUnicode(":pencil:"));
             keyboard.add(row);
             row = new KeyboardRow();
             row.add("Gatto " + EmojiParser.parseToUnicode(":cat2:") + EmojiParser.parseToUnicode(":dash:"));
@@ -1135,10 +1452,10 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
         }
     }
 
-    private boolean listContains(Collection toserach, String searchfor){
+    private boolean listContains(Collection toserach, String searchfor) {
         boolean found = false;
         Iterator<String> searchIter = toserach.iterator();
-        while(searchIter.hasNext())
+        while (searchIter.hasNext())
             if (searchIter.next().equals(searchfor)) {
                 found = true;
             }
@@ -1169,7 +1486,7 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
     }
 
     private boolean updateIsReplyHasText(Update update, String text) {
-        if (update.getMessage().isReply() && update.getMessage().getReplyToMessage().getText().contains(text)) {
+        if (update.hasMessage() && update.getMessage().isReply() && update.getMessage().getReplyToMessage().getText().contains(text)) {
             return true;
         } else {
             return false;
@@ -1214,34 +1531,112 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
         }
     }
 
-    private void saveMaterial(Update update, Collection collection, Collection serialisedname){
+    private void saveMaterial(Update update, LinkedList Collection, LinkedList serialisedname, String nameofCollection) {
         SendMessage m = new SendMessage();
-        if (update.getMessage().hasDocument()||update.getMessage().hasPhoto()||update.getMessage().hasVideo()||update.getMessage().hasAudio()){
+        if (update.getMessage().hasDocument() || update.getMessage().hasPhoto() || update.getMessage().hasVideo() || update.getMessage().hasAudio()) {
             Fileid fileid = new Fileid();
             if (update.getMessage().hasDocument()) {
                 if (!listContains(serialisedname, update.getMessage().getDocument().getFileUniqueId())) {
-                    safeSendUpdate(update, m, "", "Sto salvando il file. Questa operazione dovrebbe impiregare meno di un secondo...", "");
+                    System.out.println("Document file_id: " + update.getMessage().getDocument().getFileId());
+                    safeSendUpdate(update, m, "", "Sto salvando il file. Questa operazione dovrebbe impiegare meno di un secondo...", "");
                     serialisedname.add(update.getMessage().getDocument().getFileUniqueId());
-                    collection.add(update.getMessage().getDocument().getFileId());
+                    Collection.add(update.getMessage().getDocument().getFileId());
+                    if (nameofCollection.equals("eng")) {
+                        fileid.writeMapEnglish(Collection);
+                        fileid.writeMapEnglishName(serialisedname);
+                    } else if (nameofCollection.equals("art")) {
+                        fileid.writeMapArt(Collection);
+                        fileid.writeMapArtName(serialisedname);
+                    } else if (nameofCollection.equals("geo")) {
+                        fileid.writeMapGeography(Collection);
+                        fileid.writeMapGeographyName(serialisedname);
+                    } else if (nameofCollection.equals("geom")) {
+                        fileid.writeMapGeometry(Collection);
+                        fileid.writeMapGeometryName(serialisedname);
+                    } else if (nameofCollection.equals("ger")) {
+                        fileid.writeMapGerman(Collection);
+                        fileid.writeMapGermanName(serialisedname);
+                    } else if (nameofCollection.equals("his")) {
+                        fileid.writeMapHistory(Collection);
+                        fileid.writeMapHistoryName(serialisedname);
+                    } else if (nameofCollection.equals("ita")) {
+                        fileid.writeMapItalian(Collection);
+                        fileid.writeMapItalianName(serialisedname);
+                    } else if (nameofCollection.equals("mat")) {
+                        fileid.writeMapMaths(Collection);
+                        fileid.writeMapMathsName(serialisedname);
+                    } else if (nameofCollection.equals("othr")) {
+                        fileid.writeMapOther(Collection);
+                        fileid.writeMapOtherName(serialisedname);
+                    } else if (nameofCollection.equals("rel")) {
+                        fileid.writeMapReligion(Collection);
+                        fileid.writeMapReligionName(serialisedname);
+                    } else if (nameofCollection.equals("sci")) {
+                        fileid.writeMapScience(Collection);
+                        fileid.writeMapScienceName(serialisedname);
+                    } else if (nameofCollection.equals("spa")) {
+                        fileid.writeMapSpanish(Collection);
+                        fileid.writeMapSpanishName(serialisedname);
+                    } else if (nameofCollection.equals("tec")) {
+                        fileid.writeMapTechnology(Collection);
+                        fileid.writeMapTechnologyName(serialisedname);
+                    }
                     safeSendUpdate(update, m, "", "Il file è stato salvato", "");
-                    fileid.writeMapEnglish(collection);
-                    fileid.writeMapEnglishName(serialisedname);
                 } else {
                     safeSendUpdate(update, m, "", "Il materiale è già stato salvato!", "");
                 }
             } else if (update.getMessage().hasVideo()) {
                 if (!listContains(serialisedname, update.getMessage().getVideo().getFileUniqueId())) {
-                    safeSendUpdate(update, m, "", "Sto salvando il file. Questa operazione dovrebbe impiregare meno di un secondo...", "");
+                    System.out.println("Video file_id" + update.getMessage().getVideo().getFileId());
+                    safeSendUpdate(update, m, "", "Sto salvando il file. Questa operazione dovrebbe impiegare meno di un secondo...", "");
                     serialisedname.add(update.getMessage().getVideo().getFileUniqueId());
-                    collection.add(update.getMessage().getVideo().getFileId());
+                    Collection.add(update.getMessage().getVideo().getFileId());
+                    if (nameofCollection.equals("eng")) {
+                        fileid.writeMapEnglish(Collection);
+                        fileid.writeMapEnglishName(serialisedname);
+                    } else if (nameofCollection.equals("art")) {
+                        fileid.writeMapArt(Collection);
+                        fileid.writeMapArtName(serialisedname);
+                    } else if (nameofCollection.equals("geo")) {
+                        fileid.writeMapGeography(Collection);
+                        fileid.writeMapGeographyName(serialisedname);
+                    } else if (nameofCollection.equals("geom")) {
+                        fileid.writeMapGeometry(Collection);
+                        fileid.writeMapGeometryName(serialisedname);
+                    } else if (nameofCollection.equals("ger")) {
+                        fileid.writeMapGerman(Collection);
+                        fileid.writeMapGermanName(serialisedname);
+                    } else if (nameofCollection.equals("his")) {
+                        fileid.writeMapHistory(Collection);
+                        fileid.writeMapHistoryName(serialisedname);
+                    } else if (nameofCollection.equals("ita")) {
+                        fileid.writeMapItalian(Collection);
+                        fileid.writeMapItalianName(serialisedname);
+                    } else if (nameofCollection.equals("mat")) {
+                        fileid.writeMapMaths(Collection);
+                        fileid.writeMapMathsName(serialisedname);
+                    } else if (nameofCollection.equals("othr")) {
+                        fileid.writeMapOther(Collection);
+                        fileid.writeMapOtherName(serialisedname);
+                    } else if (nameofCollection.equals("rel")) {
+                        fileid.writeMapReligion(Collection);
+                        fileid.writeMapReligionName(serialisedname);
+                    } else if (nameofCollection.equals("sci")) {
+                        fileid.writeMapScience(Collection);
+                        fileid.writeMapScienceName(serialisedname);
+                    } else if (nameofCollection.equals("spa")) {
+                        fileid.writeMapSpanish(Collection);
+                        fileid.writeMapSpanishName(serialisedname);
+                    } else if (nameofCollection.equals("tec")) {
+                        fileid.writeMapTechnology(Collection);
+                        fileid.writeMapTechnologyName(serialisedname);
+                    }
                     safeSendUpdate(update, m, "", "Il file è stato salvato", "");
-                    fileid.writeMapEnglish(collection);
-                    fileid.writeMapEnglishName(serialisedname);
                 } else {
                     safeSendUpdate(update, m, "", "Il materiale è già stato salvato!", "");
                 }
             } else if (update.getMessage().hasPhoto()) {
-                ArrayList<PhotoSize> photos = (ArrayList<PhotoSize>) update.getMessage().getPhoto();
+                Collection<PhotoSize> photos = (Collection<PhotoSize>) update.getMessage().getPhoto();
                 String photofile_id = photos.stream()
                         .sorted(Comparator.comparing(PhotoSize::getFileSize).reversed())
                         .findFirst()
@@ -1250,33 +1645,111 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
                         .sorted(Comparator.comparing(PhotoSize::getFileSize).reversed())
                         .findFirst()
                         .orElse(null).getFileUniqueId();
-                System.out.println(photofile_id);
+                System.out.println("Photo file_id: " + photofile_id);
                 if (!listContains(serialisedname, photofile_unique_id)) {
-                    safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione dovrebbe impiregare meno di un secondo...", "");
-                    collection.add(photofile_id);
+                    safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione dovrebbe impiegare meno di un secondo...", "");
+                    Collection.add(photofile_id);
                     serialisedname.add(photofile_unique_id);
+                    if (nameofCollection.equals("eng")) {
+                        fileid.writeMapEnglish(Collection);
+                        fileid.writeMapEnglishName(serialisedname);
+                    } else if (nameofCollection.equals("art")) {
+                        fileid.writeMapArt(Collection);
+                        fileid.writeMapArtName(serialisedname);
+                    } else if (nameofCollection.equals("geo")) {
+                        fileid.writeMapGeography(Collection);
+                        fileid.writeMapGeographyName(serialisedname);
+                    } else if (nameofCollection.equals("geom")) {
+                        fileid.writeMapGeometry(Collection);
+                        fileid.writeMapGeometryName(serialisedname);
+                    } else if (nameofCollection.equals("ger")) {
+                        fileid.writeMapGerman(Collection);
+                        fileid.writeMapGermanName(serialisedname);
+                    } else if (nameofCollection.equals("his")) {
+                        fileid.writeMapHistory(Collection);
+                        fileid.writeMapHistoryName(serialisedname);
+                    } else if (nameofCollection.equals("ita")) {
+                        fileid.writeMapItalian(Collection);
+                        fileid.writeMapItalianName(serialisedname);
+                    } else if (nameofCollection.equals("mat")) {
+                        fileid.writeMapMaths(Collection);
+                        fileid.writeMapMathsName(serialisedname);
+                    } else if (nameofCollection.equals("othr")) {
+                        fileid.writeMapOther(Collection);
+                        fileid.writeMapOtherName(serialisedname);
+                    } else if (nameofCollection.equals("rel")) {
+                        fileid.writeMapReligion(Collection);
+                        fileid.writeMapReligionName(serialisedname);
+                    } else if (nameofCollection.equals("sci")) {
+                        fileid.writeMapScience(Collection);
+                        fileid.writeMapScienceName(serialisedname);
+                    } else if (nameofCollection.equals("spa")) {
+                        fileid.writeMapSpanish(Collection);
+                        fileid.writeMapSpanishName(serialisedname);
+                    } else if (nameofCollection.equals("tec")) {
+                        fileid.writeMapTechnology(Collection);
+                        fileid.writeMapTechnologyName(serialisedname);
+                    }
                     safeSendUpdate(update, m, "", "Il file è stato salvato", "");
-                    fileid.writeMapEnglish(collection);
-                    fileid.writeMapEnglishName(serialisedname);
                 } else {
                     safeSendUpdate(update, m, "", "Il materiale è già stato salvato!", "");
                 }
-            } else if (update.getMessage().hasAudio()){
+            } else if (update.getMessage().hasAudio()) {
                 if (!listContains(serialisedname, update.getMessage().getAudio().getFileUniqueId())) {
-                    safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione dovrebbe impiregare meno di un secondo...", "");
-                    collection.add(update.getMessage().getAudio().getFileId());
+                    System.out.println(update.getMessage().getAudio().getFileId());
+                    safeSendUpdate(update, m, "", "Sto scaricando il file. Questa operazione dovrebbe impiegare meno di un secondo...", "");
+                    Collection.add(update.getMessage().getAudio().getFileId());
                     serialisedname.add(update.getMessage().getAudio().getFileUniqueId());
+                    if (nameofCollection.equals("eng")) {
+                        fileid.writeMapEnglish(Collection);
+                        fileid.writeMapEnglishName(serialisedname);
+                    } else if (nameofCollection.equals("art")) {
+                        fileid.writeMapArt(Collection);
+                        fileid.writeMapArtName(serialisedname);
+                    } else if (nameofCollection.equals("geo")) {
+                        fileid.writeMapGeography(Collection);
+                        fileid.writeMapGeographyName(serialisedname);
+                    } else if (nameofCollection.equals("geom")) {
+                        fileid.writeMapGeometry(Collection);
+                        fileid.writeMapGeometryName(serialisedname);
+                    } else if (nameofCollection.equals("ger")) {
+                        fileid.writeMapGerman(Collection);
+                        fileid.writeMapGermanName(serialisedname);
+                    } else if (nameofCollection.equals("his")) {
+                        fileid.writeMapHistory(Collection);
+                        fileid.writeMapHistoryName(serialisedname);
+                    } else if (nameofCollection.equals("ita")) {
+                        fileid.writeMapItalian(Collection);
+                        fileid.writeMapItalianName(serialisedname);
+                    } else if (nameofCollection.equals("mat")) {
+                        fileid.writeMapMaths(Collection);
+                        fileid.writeMapMathsName(serialisedname);
+                    } else if (nameofCollection.equals("othr")) {
+                        fileid.writeMapOther(Collection);
+                        fileid.writeMapOtherName(serialisedname);
+                    } else if (nameofCollection.equals("rel")) {
+                        fileid.writeMapReligion(Collection);
+                        fileid.writeMapReligionName(serialisedname);
+                    } else if (nameofCollection.equals("sci")) {
+                        fileid.writeMapScience(Collection);
+                        fileid.writeMapScienceName(serialisedname);
+                    } else if (nameofCollection.equals("spa")) {
+                        fileid.writeMapSpanish(Collection);
+                        fileid.writeMapSpanishName(serialisedname);
+                    } else if (nameofCollection.equals("tec")) {
+                        fileid.writeMapTechnology(Collection);
+                        fileid.writeMapTechnologyName(serialisedname);
+                    }
                     safeSendUpdate(update, m, "", "Il file è stato salvato", "");
-                    fileid.writeMapEnglish(collection);
-                    fileid.writeMapEnglishName(serialisedname);
                 } else {
                     safeSendUpdate(update, m, "", "Il materiale è già stato salvato!", "");
                 }
             }
         } else {
-            safeSendUpdate(update, m, "", "Questo tipo di contenuto non può essere salvato. Per favore manda un file generico (,pdf, .txt, .zip), un foto, un file di audio o un video", "");
+            safeSendUpdate(update, m, "", "Questo tipo di contenuto non può essere salvato. Per favore manda un file generico (pdf, .txt, .zip...), una foto, un file di audio o un video", "");
         }
     }
+
     private void deleteMessage(Update update, DeleteMessage dmsg, String error) {
         try {
             execute(dmsg);
@@ -1285,4 +1758,247 @@ public class Schiaver_bot2 extends TelegramLongPollingBot {
             System.out.println(error);
         }
     }
+
+    private String userStatus(Update update) throws TelegramApiException {
+        GetChatMember getChatMember = new GetChatMember();
+        if (update.hasMessage()) {
+            getChatMember.setChatId(chat_id(update));
+            getChatMember.setUserId(update.getMessage().getFrom().getId());
+            ChatMember member = execute(getChatMember);
+            return member.getStatus();
+        } else if (update.hasCallbackQuery()) {
+            getChatMember.setChatId(chat_id(update));
+            getChatMember.setUserId(update.getCallbackQuery().getMessage().getFrom().getId());
+            ChatMember member = execute(getChatMember);
+            return member.getStatus();
+        } else {
+            return null;
+        }
+    }
+
+    private ArrayList<ChatMember> chatAdmins(Update update, GetChatAdministrators chatAdministrators) throws TelegramApiException {
+        chatAdministrators.setChatId(update.getMessage().getChatId());
+        ArrayList<ChatMember> chatMemberArray = execute(chatAdministrators);
+        System.out.println(chatMemberArray);
+        return chatMemberArray;
+    }
+
+    private void getResources(Update update, LinkedList<String> list, String listname) throws TelegramApiException {
+        DeleteMessage dmsg = new DeleteMessage(update.getCallbackQuery().getMessage().getChatId(), update.getCallbackQuery().getMessage().getMessageId());
+        deleteMessage(update, dmsg, "");
+        if (list.size() == 1) {
+            if (list.getFirst().startsWith("BQACAgQAA")) {
+                SendDocument d = new SendDocument();
+                InputFile f = new InputFile();
+                f.setMedia(list.get(0));
+                d.setDocument(f);
+                d.setChatId(update.getCallbackQuery().getMessage().getChatId());
+                d.setCaption("Questo è l'unico file che ho trovato");
+                try {
+                    execute(d);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            } else if (list.getFirst().startsWith("AgACAgQAA")) {
+                SendPhoto d = new SendPhoto();
+                InputFile f = new InputFile();
+                f.setMedia(list.get(0));
+                d.setPhoto(f);
+                d.setChatId(update.getCallbackQuery().getMessage().getChatId());
+                d.setCaption("Questo è l'unico file che ho trovato");
+                try {
+                    execute(d);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            } else if (list.getFirst().startsWith("CQACAgQAA")) {
+                SendAudio d = new SendAudio();
+                InputFile f = new InputFile();
+                f.setMedia(list.get(0));
+                d.setAudio(f);
+                d.setChatId(update.getCallbackQuery().getMessage().getChatId());
+                d.setCaption("Questo è l'unico file che ho trovato");
+                try {
+                    execute(d);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            } else if (list.getFirst().startsWith("CgACAgQAA")) {
+                SendVideo d = new SendVideo();
+                InputFile f = new InputFile();
+                f.setMedia(list.get(0));
+                d.setVideo(f);
+                d.setChatId(update.getCallbackQuery().getMessage().getChatId());
+                d.setCaption("Questo è l'unico file che ho trovato");
+                try {
+                    execute(d);
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+
+                }
+            }
+        } else if (list.size() != 0 && list.size() != 1) {
+            ListIterator<String> iterate = list.listIterator();
+            String file_id = iterate.next();
+            System.out.println(file_id);
+            if (list.getFirst().startsWith("BQACAgQAA")) {
+                InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+                List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+                List<InlineKeyboardButton> rowInline = new ArrayList<>();
+                SendDocument d = new SendDocument();
+                rowInline.add(new InlineKeyboardButton().setText("«").setCallbackData(listname + "_p"));
+                rowInline.add(new InlineKeyboardButton().setText(EmojiParser.parseToUnicode(":x:")).setCallbackData(CALLBACK_BUTTON_UPDATE_CANCEL));
+                rowInline.add(new InlineKeyboardButton().setText("»").setCallbackData(listname + "_n"));
+                rowsInline.add(rowInline);
+                markupInline.setKeyboard(rowsInline);
+                d.setReplyMarkup(markupInline);
+                d.setDocument(file_id);
+                d.setChatId(update.getCallbackQuery().getMessage().getChatId());
+                execute(d);
+            } else if (list.getFirst().startsWith("AgACAgQAA")) {
+                InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+                List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+                List<InlineKeyboardButton> rowInline = new ArrayList<>();
+                SendAudio d = new SendAudio();
+                rowInline.add(new InlineKeyboardButton().setText("«").setCallbackData(listname + "_p"));
+                rowInline.add(new InlineKeyboardButton().setText(EmojiParser.parseToUnicode(":x:")).setCallbackData(CALLBACK_BUTTON_UPDATE_CANCEL));
+                rowInline.add(new InlineKeyboardButton().setText("»").setCallbackData(listname + "_n"));
+                rowsInline.add(rowInline);
+                markupInline.setKeyboard(rowsInline);
+                d.setReplyMarkup(markupInline);
+                d.setAudio(file_id);
+                d.setChatId(update.getCallbackQuery().getMessage().getChatId());
+                execute(d);
+            } else if (list.getFirst().startsWith("CQACAgQAA")) {
+                InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+                List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+                List<InlineKeyboardButton> rowInline = new ArrayList<>();
+                SendAudio d = new SendAudio();
+                rowInline.add(new InlineKeyboardButton().setText("«").setCallbackData(listname + "_p"));
+                rowInline.add(new InlineKeyboardButton().setText(EmojiParser.parseToUnicode(":x:")).setCallbackData(CALLBACK_BUTTON_UPDATE_CANCEL));
+                rowInline.add(new InlineKeyboardButton().setText("»").setCallbackData(listname + "_n"));
+                rowsInline.add(rowInline);
+                markupInline.setKeyboard(rowsInline);
+                d.setReplyMarkup(markupInline);
+                d.setAudio(file_id);
+                d.setChatId(update.getCallbackQuery().getMessage().getChatId());
+                execute(d);
+            } else if (list.getFirst().startsWith("BAACAgQAA")) {
+                    InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+                    List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+                    List<InlineKeyboardButton> rowInline = new ArrayList<>();
+                    SendVideo d = new SendVideo();
+                    rowInline.add(new InlineKeyboardButton().setText("«").setCallbackData(listname + "_p"));
+                    rowInline.add(new InlineKeyboardButton().setText(EmojiParser.parseToUnicode(":x:")).setCallbackData(CALLBACK_BUTTON_UPDATE_CANCEL));
+                    rowInline.add(new InlineKeyboardButton().setText("»").setCallbackData(listname + "_n"));
+                    rowsInline.add(rowInline);
+                    markupInline.setKeyboard(rowsInline);
+                    d.setReplyMarkup(markupInline);
+                    d.setVideo(file_id);
+                    d.setChatId(update.getCallbackQuery().getMessage().getChatId());
+                    execute(d);
+            }
+        } else {
+            SendMessage m = new SendMessage();
+            safeSendUpdate(update, m, "", "Non ci sono materiali per questo corso", "");
+        }
+    }
+
+    private void getPrevious(Update update, LinkedList list, String listname){
+        Iterator<String> iterate = list.descendingIterator();
+        System.out.println(list);
+        String next = iterate.next();
+        String lol = iterate.next();
+        System.out.println(lol);
+        System.out.println(next);
+        EditMessageMedia media = new EditMessageMedia();
+        if (next.startsWith("BQACAgQAA")) {
+            if (iterate.hasNext() && update.getCallbackQuery().getMessage().getDocument().getFileId() != lol) {
+                InputMediaDocument d = new InputMediaDocument();
+                InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+                List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+                List<InlineKeyboardButton> rowInline = new ArrayList<>();
+                rowInline.add(new InlineKeyboardButton().setText("«").setCallbackData(listname + "_p"));
+                rowInline.add(new InlineKeyboardButton().setText(EmojiParser.parseToUnicode(":x:")).setCallbackData(CALLBACK_BUTTON_UPDATE_CANCEL));
+                rowInline.add(new InlineKeyboardButton().setText("»").setCallbackData(listname + "_n"));
+                rowsInline.add(rowInline);
+                markupInline.setKeyboard(rowsInline);
+                d.setMedia(lol);
+                media.setChatId(update.getCallbackQuery().getMessage().getChatId());
+                media.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+                media.setMedia(d);
+                media.setReplyMarkup(markupInline);
+            }
+        }
+    }
+
+
+    private void getNext(Update update, ListIterator <String> iterate, String listname) throws TelegramApiException {
+        EditMessageMedia media = new EditMessageMedia();
+        String lol = iterate.next();
+        System.out.println("*********" + lol);
+        if (lol.startsWith("BQACAgQAA")) {
+            if (iterate.hasPrevious() && update.getCallbackQuery().getMessage().getDocument().getFileId() != lol) {
+                InputMediaDocument d = new InputMediaDocument();
+                InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+                List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+                List<InlineKeyboardButton> rowInline = new ArrayList<>();
+                rowInline.add(new InlineKeyboardButton().setText("«").setCallbackData(listname + "_p"));
+                rowInline.add(new InlineKeyboardButton().setText(EmojiParser.parseToUnicode(":x:")).setCallbackData(CALLBACK_BUTTON_UPDATE_CANCEL));
+                rowInline.add(new InlineKeyboardButton().setText("»").setCallbackData(listname + "_n"));
+                rowsInline.add(rowInline);
+                markupInline.setKeyboard(rowsInline);
+                d.setMedia(lol);
+                media.setChatId(update.getCallbackQuery().getMessage().getChatId());
+                media.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+                media.setMedia(d);
+                media.setReplyMarkup(markupInline);
+            }
+        } else if (lol.startsWith("BQACAgQAA")) {
+            InputMediaPhoto d = new InputMediaPhoto();
+            d.setMedia(lol);
+            media.setChatId(update.getCallbackQuery().getMessage().getChatId());
+            media.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+            media.setMedia(d);
+        } else if (lol.startsWith("CQACAgQAA")) {
+            InputMediaAudio d = new InputMediaAudio();
+            d.setMedia(lol);
+            media.setChatId(update.getCallbackQuery().getMessage().getChatId());
+            media.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+            media.setMedia(d);
+        } else if (lol.startsWith("CgACAgQAA")) {
+            InputMediaVideo d = new InputMediaVideo();
+            d.setMedia(lol);
+            media.setChatId(update.getCallbackQuery().getMessage().getChatId());
+            media.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+            media.setMedia(d);
+        }
+        execute(media);
+    }
+
+
+    private boolean isAdmin(Update update) throws TelegramApiException {
+        if (update.hasMessage()) {
+            GetChatAdministrators admin = new GetChatAdministrators()
+                    .setChatId(update.getMessage().getChatId());
+            ArrayList<ChatMember> alladmins = execute(admin);
+            if (alladmins.contains(update.getMessage().getFrom().getUserName())) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (update.hasCallbackQuery()) {
+            GetChatAdministrators admin = new GetChatAdministrators()
+                    .setChatId(update.getCallbackQuery().getMessage().getChatId());
+            ArrayList<ChatMember> alladmins = execute(admin);
+            if (alladmins.contains(update.getMessage().getFrom().getUserName())) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        return false;
+    }
 }
+
